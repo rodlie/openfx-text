@@ -1,0 +1,3 @@
+[submodule "common/OpenFX"]
+	path = common/OpenFX
+	url = https://github.com/NatronGitHub/openfx
