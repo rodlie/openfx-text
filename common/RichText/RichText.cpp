@@ -694,7 +694,116 @@ RichText::RichTextRenderResult RichText::renderText(int width,
                                                     bool flip,
                                                     bool noBuffer)
 {
+    RichTextRenderResult result;
+    result.success = false;
 
+    if (!fc) {
+        // std::cout << "NO FONTCONFIG" << std::endl;
+        return result;
+    }
+
+    // setup font map
+    PangoFontMap *map = pango_cairo_font_map_get_default();
+    RichText::setupFontmap(fc, map);
+
+    // setup surface and layout
+    cairo_t *cr;
+    cairo_status_t status;
+    cairo_surface_t *surface;
+    PangoLayout *layout;
+    cairo_font_options_t* options;
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cr = cairo_create(surface);
+    layout = pango_cairo_create_layout(cr);
+    options = cairo_font_options_create();
+
+    // flip
+    if (flip) {
+        cairo_scale(cr, 1.0f, -1.0f);
+        cairo_translate(cr, 0.0f, -height);
+    }
+
+    // set font options
+    RichText::setFontHintStyleOption(options, style.hint);
+    RichText::setFontHintMetricsOption(options, style.metrics);
+    RichText::setFontAntialiasOption(options, style.aa);
+    RichText::setFontSubpixelOption(options, style.subpixel);
+
+    pango_cairo_context_set_font_options(pango_layout_get_context(layout), options);
+
+    // set text
+    pango_layout_set_text(layout, txt.c_str(), -1);
+
+    // set font desc
+    PangoFontDescription *desc;
+    desc = pango_font_description_from_string(font.c_str());
+    RichText::setFontWeightDescription(desc, style.weight);
+    RichText::setFontStretchDescription(desc, style.stretch);
+    pango_layout_set_font_description(layout, desc);
+    pango_font_description_free(desc);
+
+    // set layout
+    RichText::setLayoutWidth(layout, width);
+    RichText::setLayoutWrap(layout, style.wrap);
+    RichText::setLayoutAlign(layout, style.align);
+    RichText::setLayoutJustify(layout, style.justify);
+
+    // set color
+    cairo_set_source_rgba(cr,
+                          style.textColor.r,
+                          style.textColor.g,
+                          style.textColor.b,
+                          style.textColor.a);
+
+    // update layout
+    pango_cairo_update_layout(cr, layout);
+    pango_cairo_show_layout(cr, layout);
+
+    // add pango layout width/height
+    result.pW = -1;
+    result.pH = -1;
+    pango_layout_get_pixel_size(layout, &result.pW, &result.pH);
+
+    // success?
+    status = cairo_status(cr);
+    if (!status) { result.success = true; }
+
+    // flush
+    cairo_surface_flush(surface);
+
+    // add cairo surface width/height
+    result.sW = -1;
+    result.sH = -1;
+    result.sW = cairo_image_surface_get_width(surface);
+    result.sH = cairo_image_surface_get_height(surface);
+
+    if (result.sW != width || result.sH != height) { // size differ!
+        noBuffer = true; // skip buffer
+    }
+
+    // get buffer
+    if (result.success && !noBuffer) {
+        unsigned char* buffer = cairo_image_surface_get_data(surface);
+        result.buffer = new unsigned char[width * height * 4];
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                result.buffer[offset + 0] = buffer[offset + 2];
+                result.buffer[offset + 1] = buffer[offset + 1];
+                result.buffer[offset + 2] = buffer[offset + 0];
+                result.buffer[offset + 3] = buffer[offset + 3];
+                offset += 4;
+            }
+        }
+        buffer = nullptr;
+    }
+
+    g_object_unref(layout);
+    cairo_destroy(cr);
+    cairo_font_options_destroy(options);
+    cairo_surface_destroy(surface);
+
+    return result;
 }
 
 std::vector<RichText::RichTextSubtitle> RichText::parseSRT(const std::string &filename)
