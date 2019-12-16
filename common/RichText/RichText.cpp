@@ -913,9 +913,9 @@ std::vector<RichText::RichTextSubtitle> RichText::parseSRT(const std::string &fi
     return sdata;
 }
 
-std::list<std::string> RichText::getFontFamilyList(FcConfig *fc,
-                                                   const std::string &extra,
-                                                   bool extraisDir)
+std::vector<std::string> RichText::getFontFamilyList(FcConfig *fc,
+                                                     const std::string &extra,
+                                                     bool extraisDir)
 {
     bool noFC = false;
     if (!fc) { noFC = true; fc = FcInitLoadConfigAndFonts(); } // init fc
@@ -948,7 +948,9 @@ std::list<std::string> RichText::getFontFamilyList(FcConfig *fc,
     // sort and return
     fonts.sort();
     fonts.erase(std::unique(fonts.begin(), fonts.end(), RichText::compare), fonts.end());
-    return fonts;
+
+    std::vector<std::string> result(fonts.begin(), fonts.end());
+    return result;
 }
 
 std::string RichText::readTextFile(const std::string &txt)

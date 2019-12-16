@@ -279,7 +279,7 @@ public:
     static std::vector<RichTextSubtitle> parseSRT(const std::string &filename);
 
     /** @brief generate font family list */
-    static std::list<std::string> getFontFamilyList(FcConfig *fc,
+    static std::vector<std::string> getFontFamilyList(FcConfig *fc,
                                                     const std::string &extra = std::string(),
                                                     bool extraisDir = false);
 

@@ -118,6 +118,10 @@
 
 using namespace OFX;
 
+// workaround for stupid Fusion!
+static std::vector<std::string> _fonts;
+//
+
 class TextOFXPlugin : public OFX::ImageEffect
 {
 public:
@@ -287,6 +291,14 @@ void TextOFXPlugin::render(const OFX::RenderArguments &args)
                                  textStyle.strokeColor.b,
                                  textStyle.strokeColor.a);
 
+    // workaround for stupid Fusion!
+    /*int fontID = 0;
+    _fontName->getValueAtTime(args.time, fontID);
+    if (_fonts.size()>=fontID) {
+        font = _fonts.at(fontID);
+    }*/
+    //
+
     if ( font.empty() ) { font = kParamFontNameDefault; }
     std::ostringstream pangoFont;
     pangoFont << font;
@@ -357,12 +369,19 @@ void TextOFXPlugin::changedParam(const OFX::InstanceChangedArgs &args,
     clearPersistentMessage();
 
     if (paramName == kParamFontName) {
-        int selected;
+        /*int selected;
         std::string label;
         _fontName->getValue(selected);
+        std::cout << "LABEL " << label << " " << selected << std::endl;
         _fontName->getOption(selected, label);
         if (!label.empty()) {
             _font->setValue(label);
+        }*/
+        // workaround for fusion
+        int selected = -1;
+        _fontName->getValue(selected);
+        if (selected<=_fonts.size()) {
+            _font->setValue(_fonts.at(selected));
         }
     }
 }
@@ -407,12 +426,11 @@ void TextOFXPluginFactory::describeInContext(OFX::ImageEffectDescriptor &desc,
         param->setLabel(kParamFontNameLabel);
         param->setHint(kParamFontNameHint);
 
-        std::list<std::string>::const_iterator font;
-        std::list<std::string> fonts = RichText::getFontFamilyList(nullptr);
-        for(font = fonts.begin(); font != fonts.end(); ++font) {
-            std::string fontName = *font;
-            param->appendOption(fontName);
-        }
+        std::vector<std::string> fonts = RichText::getFontFamilyList(nullptr);
+        // workaround for stupid Fusion!
+        _fonts = fonts;
+        //
+        for(int i=0;i<fonts.size();++i) { param->appendOption(fonts.at(i)); }
         param->setAnimates(false);
         if (fonts.empty()) {
             param->appendOption("N/A");
