@@ -22,6 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -698,7 +699,7 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     result.success = false;
 
     if (!fc) {
-        // std::cout << "NO FONTCONFIG" << std::endl;
+        std::cout << "NO FONTCONFIG!!!" << std::endl;
         return result;
     }
 
@@ -712,16 +713,27 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     cairo_surface_t *surface;
     PangoLayout *layout;
     cairo_font_options_t* options;
+    PangoAttrList *alist;
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
     layout = pango_cairo_create_layout(cr);
     options = cairo_font_options_create();
+    alist = pango_attr_list_new();
 
     // flip
     if (flip) {
         cairo_scale(cr, 1.0f, -1.0f);
         cairo_translate(cr, 0.0f, -height);
     }
+
+    // set background
+    cairo_rectangle(cr, 0, 0, width, height);
+    cairo_set_source_rgba(cr,
+                          style.backgroundColor.r,
+                          style.backgroundColor.g,
+                          style.backgroundColor.b,
+                          style.backgroundColor.a);
+    cairo_fill(cr);
 
     // set font options
     RichText::setFontHintStyleOption(options, style.hint);
@@ -746,7 +758,39 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     RichText::setLayoutWidth(layout, width);
     RichText::setLayoutWrap(layout, style.wrap);
     RichText::setLayoutAlign(layout, style.align);
+
+    if (style.valign != 0) {
+        int text_width, text_height;
+        pango_layout_get_pixel_size(layout, &text_width, &text_height);
+        switch (style.valign) {
+        case 1:
+            cairo_move_to(cr, 0, (height-text_height)/2);
+            break;
+        case 2:
+            cairo_move_to(cr, 0, height-text_height);
+            break;
+        }
+    }
+
     RichText::setLayoutJustify(layout, style.justify);
+
+    if (style.letterSpace != 0) {
+        pango_attr_list_insert(alist,pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
+    }
+    pango_layout_set_attributes(layout,alist);
+
+    // set stroke
+    if (style.strokeWidth>0) {
+        cairo_new_path(cr);
+        pango_cairo_layout_path(cr, layout);
+        cairo_set_line_width(cr, std::floor(style.strokeWidth * rX + 0.5));
+        cairo_set_source_rgba(cr,
+                              style.strokeColor.r,
+                              style.strokeColor.g,
+                              style.strokeColor.b,
+                              style.strokeColor.a);
+        cairo_stroke_preserve(cr);
+    }
 
     // set color
     cairo_set_source_rgba(cr,
@@ -754,6 +798,10 @@ RichText::RichTextRenderResult RichText::renderText(int width,
                           style.textColor.g,
                           style.textColor.b,
                           style.textColor.a);
+    cairo_fill(cr);
+
+
+
 
     // update layout
     pango_cairo_update_layout(cr, layout);
@@ -798,9 +846,10 @@ RichText::RichTextRenderResult RichText::renderText(int width,
         buffer = nullptr;
     }
 
+    pango_attr_list_unref(alist);
+    cairo_font_options_destroy(options);
     g_object_unref(layout);
     cairo_destroy(cr);
-    cairo_font_options_destroy(options);
     cairo_surface_destroy(surface);
 
     return result;
@@ -868,7 +917,8 @@ std::list<std::string> RichText::getFontFamilyList(FcConfig *fc,
                                                    const std::string &extra,
                                                    bool extraisDir)
 {
-    if (!fc) { fc = FcInitLoadConfigAndFonts(); } // init fc
+    bool noFC = false;
+    if (!fc) { noFC = true; fc = FcInitLoadConfigAndFonts(); } // init fc
     if (!extra.empty()) { // add extra font/dir
         const FcChar8 * custom = (const FcChar8 *)extra.c_str();
         if (!extraisDir) {
@@ -893,6 +943,7 @@ std::list<std::string> RichText::getFontFamilyList(FcConfig *fc,
     }
     FcObjectSetDestroy(os);
     FcPatternDestroy(p);
+    if (noFC) { FcConfigDestroy(fc); }
 
     // sort and return
     fonts.sort();

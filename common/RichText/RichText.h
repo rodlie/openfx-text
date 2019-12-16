@@ -33,8 +33,15 @@ public:
         RichTextAlignRight,
         RichTextAlignCenter
     };
+    enum RichTextVAligmnet
+    {
+        RichTextAlignTop,
+        RichTextAlignMiddle,
+        RichTextAlignBottom
+    };
     enum RichTextWrap
     {
+        RichTextWrapNone,
         RichTextWrapWord,
         RichTextWrapChar,
         RichTextWrapWordChar
@@ -122,7 +129,7 @@ public:
         int wrap;
         int align;
         int valign;
-        int justify;
+        bool justify;
         int stretch;
         int weight;
         int hint;
