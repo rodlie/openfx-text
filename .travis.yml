@@ -1,0 +1,22 @@
+sudo: required
+language: cpp
+compiler: g++
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+    - os: linux
+      dist: bionic
+
+before_install:
+  - sudo apt-get update
+
+install:
+  - sudo apt-get install cmake pkg-config libfontconfig1-dev libcairo2-dev libpango1.0-dev libgl-dev tree
+
+script:
+  - mkdir build && cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/OFX/Plugins ..
+  - make
+  - make DESTDIR=`pwd`/pkg install
+  - tree pkg
