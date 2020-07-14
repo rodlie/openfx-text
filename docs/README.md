@@ -8,17 +8,24 @@ Binaries for Windows 7/8/10 are available on ... (TBD)
 
 ## Linux
 
-Requirements:
+### Requirements:
 
  * fontconfig development files and libraries
  * pango(cairo) development files and libraries
 
-Build and install:
+On Ubuntu install the following packages:
+
+```
+sudo apt install build-essential cmake pkg-config libfontconfig1-dev libcairo2-dev libpango1.0-dev libgl-dev
+```
+
+### Build and install:
+
 ```
 git clone https://github.com/fxarena/openfx-text
 cd openfx-text
 git submodule update --init
 mkdir build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr/OFX/Plugins ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/OFX/Plugins ..
 make && sudo make install
 ```
