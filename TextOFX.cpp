@@ -1,7 +1,7 @@
 /*
-####################################################################
+########################################################################
 #
-# Copyright (C) 2019 Ole-André Rodlie <ole.andre.rodlie@gmail.com>
+# Copyright (C) 2019, 2020 Ole-André Rodlie <ole.andre.rodlie@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
-####################################################################
+########################################################################
 */
 
 #include "ofxsImageEffect.h"
@@ -393,7 +393,7 @@ void TextOFXPluginFactory::describe(OFX::ImageEffectDescriptor &desc)
     // basic labels
     desc.setLabel(kPluginName);
     desc.setPluginGrouping(kPluginGrouping);
-    desc.setPluginDescription("Alternative OpenFX Text Generator.");
+    desc.setPluginDescription("Alternative internationalized OpenFX text generator for DaVinci Resolve and Fusion Studio.");
 
     // add the supported contexts
     desc.addSupportedContext(eContextGenerator);
