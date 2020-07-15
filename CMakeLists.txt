@@ -38,7 +38,7 @@ pkg_search_module(FONTCONFIG REQUIRED fontconfig)
 pkg_search_module(PANGO REQUIRED pangocairo)
 
 set (CMAKE_CXX_STANDARD 11)
-set(OPENFX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/common/OpenFX")
+set(OPENFX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/OpenFX")
 set(OFX_SUPPORT_HEADER_DIR "${OPENFX_PATH}/Support/include")
 set(OFX_SUPPORT_LIBRARY_DIR "${OPENFX_PATH}/Support/Library")
 
@@ -81,7 +81,7 @@ file(GLOB SOURCES
     "TextHosts.h"
     "TextParams.h"
 )
-file(GLOB RESOURCES "common/net.sf.openfx.Text.png")
+file(GLOB RESOURCES "net.sf.openfx.Text.png")
 
 if (APPLE)
     set(FC_FONTS_DIR "<dir>/System/Library/Fonts</dir><dir>/Library/Fonts</dir><dir>~/Library/Fonts</dir>")
@@ -94,7 +94,7 @@ else()
     set(FC_CACHE_DIR "<cachedir prefix=\"xdg\">fontconfig</cachedir><cachedir>~/.fontconfig</cachedir>")
 endif()
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/fonts.conf.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/fonts.conf.in
     ${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
     @ONLY
 )
@@ -192,7 +192,7 @@ else()
   install(FILES ${RESOURCES}
     DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources
   )
-  install(FILES common/Info.plist
+  install(FILES Info.plist
     DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents
   )
   if(${BUNDLE_FONTS_CONF})
