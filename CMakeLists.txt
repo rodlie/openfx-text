@@ -15,7 +15,11 @@
 ####################################################################
 
 cmake_minimum_required(VERSION 3.1)
-project(TextOFX CXX)
+project(Text CXX)
+
+add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0)
+add_definitions(-DkPluginName="TextOFX" -DkPluginGrouping="FxArena" -DkPluginIdentifier="net.fxarena.openfx.TextOFX")
+add_definitions(-DkPluginDescription="Alternative internationalized OpenFX text generator. See https://text.fxarena.net or https://github.com/fxarena/openfx-text for more information.")
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
 
@@ -63,7 +67,7 @@ FILE(GLOB SUPPORT_SOURCES
 )
 
 FILE(GLOB SOURCES
-    "TextOFX.cpp"
+    "Text.cpp"
     "common/RichText/RichText.cpp"
 )
 

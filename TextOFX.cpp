@@ -20,12 +20,6 @@
 #include "RichText.h"
 #include <iostream>
 
-#define kPluginName "TextOFX"
-#define kPluginGrouping "FxArena"
-#define kPluginIdentifier "net.fxarena.openfx.TextOFX"
-#define kPluginVersionMajor 1
-#define kPluginVersionMinor 0
-
 #define kSupportsTiles 0
 #define kSupportsMultiResolution 0
 #define kSupportsRenderScale 1
@@ -393,7 +387,7 @@ void TextOFXPluginFactory::describe(OFX::ImageEffectDescriptor &desc)
     // basic labels
     desc.setLabel(kPluginName);
     desc.setPluginGrouping(kPluginGrouping);
-    desc.setPluginDescription("Alternative internationalized OpenFX text generator for DaVinci Resolve and Fusion Studio.");
+    desc.setPluginDescription(kPluginDescription);
 
     // add the supported contexts
     desc.addSupportedContext(eContextGenerator);

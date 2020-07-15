@@ -10,6 +10,8 @@ Binaries for Windows 7/8/10 are available on ... (TBD)
 
 ### Requirements:
 
+ * cmake and pkg-config
+ * OpenGL development files and libraries
  * fontconfig development files and libraries
  * pango(cairo) development files and libraries
 
