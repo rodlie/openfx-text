@@ -19,7 +19,7 @@ project(Text CXX)
 
 add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0)
 add_definitions(-DkPluginName="TextOFX" -DkPluginGrouping="Draw" -DkPluginIdentifier="net.sf.openfx.Text")
-add_definitions(-DkPluginDescription="Internationalized OpenFX text generator. See https://github.com/fxarena/openfx-text for more information.")
+add_definitions(-DkPluginDescription="Advanced internationalized OpenFX text generator. See https://github.com/fxarena/openfx-text for more information.")
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
 
