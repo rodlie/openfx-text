@@ -77,6 +77,7 @@ FILE(GLOB SUPPORT_SOURCES
 
 file(GLOB SOURCES
     "Text.cpp"
+    "Text.h"
     "common/RichText/RichText.cpp"
     "common/RichText/RichText.h"
     "common/TextHosts.h"

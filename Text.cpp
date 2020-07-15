@@ -16,73 +16,33 @@
 ########################################################################
 */
 
-#include "ofxsImageEffect.h"
-#include "TextHosts.h"
-#include "TextParams.h"
-#include <iostream>
-
-using namespace OFX;
-
-// workaround for stupid Fusion!
-static std::vector<std::string> _fonts;
-//
-
-class TextOFXPlugin : public OFX::ImageEffect
-{
-public:
-    TextOFXPlugin(OfxImageEffectHandle handle);
-    virtual void render(const RenderArguments &args) override final;
-    virtual void changedParam(const InstanceChangedArgs &args,
-                              const std::string &paramName) override final;
-
-private:
-    OFX::Clip *_dstClip;
-    OFX::StringParam *_text;
-    OFX::IntParam *_fontSize;
-    OFX::RGBAParam *_textColor;
-    OFX::RGBAParam *_bgColor;
-    OFX::StringParam *_font;
-    OFX::BooleanParam *_justify;
-    OFX::ChoiceParam *_wrap;
-    OFX::ChoiceParam *_align;
-    OFX::ChoiceParam *_valign;
-    OFX::ChoiceParam *_style;
-    OFX::ChoiceParam *_stretch;
-    OFX::ChoiceParam *_weight;
-    OFX::RGBAParam *_strokeColor;
-    OFX::DoubleParam *_strokeWidth;
-    OFX::ChoiceParam *_hintStyle;
-    OFX::ChoiceParam *_hintMetrics;
-    OFX::IntParam *_letterSpace;
-    OFX::ChoiceParam *_fontName;
-    FcConfig* _fcConfig;
-};
+#include "Text.h"
 
 TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
-: OFX::ImageEffect(handle)
-, _dstClip(nullptr)
-, _text(nullptr)
-, _fontSize(nullptr)
-, _textColor(nullptr)
-, _bgColor(nullptr)
-, _font(nullptr)
-, _justify(nullptr)
-, _wrap(nullptr)
-, _align(nullptr)
-, _valign(nullptr)
-, _style(nullptr)
-, _stretch(nullptr)
-, _weight(nullptr)
-, _strokeColor(nullptr)
-, _strokeWidth(nullptr)
-, _hintStyle(nullptr)
-, _hintMetrics(nullptr)
-, _letterSpace(nullptr)
-, _fontName(nullptr)
-, _fcConfig(nullptr)
+    : ImageEffect(handle)
+    , _dstClip(nullptr)
+    , _text(nullptr)
+    , _fontSize(nullptr)
+    , _textColor(nullptr)
+    , _bgColor(nullptr)
+    , _font(nullptr)
+    , _justify(nullptr)
+    , _wrap(nullptr)
+    , _align(nullptr)
+    , _valign(nullptr)
+    , _style(nullptr)
+    , _stretch(nullptr)
+    , _weight(nullptr)
+    , _strokeColor(nullptr)
+    , _strokeWidth(nullptr)
+    , _hintStyle(nullptr)
+    , _hintMetrics(nullptr)
+    , _letterSpace(nullptr)
+    , _fontName(nullptr)
+    , _fcConfig(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
-    assert(_dstClip && _dstClip->getPixelComponents() == OFX::ePixelComponentRGBA);
+    assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
 
     _text = fetchStringParam(kParamText);
     _fontSize = fetchIntParam(kParamFontSize);
@@ -110,42 +70,35 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _fcConfig = FcInitLoadConfigAndFonts();
 }
 
-void TextOFXPlugin::render(const OFX::RenderArguments &args)
+void TextOFXPlugin::render(const RenderArguments &args)
 {
     // renderscale
-    if (!kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.)) {
-        OFX::throwSuiteStatusException(kOfxStatFailed);
+    if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
+        throwSuiteStatusException(kOfxStatFailed);
         return;
     }
 
     // dstclip
     if (!_dstClip) {
-        OFX::throwSuiteStatusException(kOfxStatFailed);
+        throwSuiteStatusException(kOfxStatFailed);
         return;
     }
-    assert(_dstClip);
 
     // get dstclip
-    OFX::auto_ptr<OFX::Image> dstImg(_dstClip->fetchImage(args.time));
-    if (!dstImg.get()) {
-        OFX::throwSuiteStatusException(kOfxStatFailed);
+    OFX::auto_ptr<Image> dstImg( _dstClip->fetchImage(args.time) );
+    if ( !dstImg.get() ) {
+        throwSuiteStatusException(kOfxStatFailed);
         return;
     }
 
     // renderscale
     checkBadRenderScaleOrField(dstImg, args);
 
-    // get bitdepth
-    OFX::BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
-    if (dstBitDepth != OFX::eBitDepthFloat) {
-        OFX::throwSuiteStatusException(kOfxStatErrFormat);
-        return;
-    }
-
-    // get channels
-    OFX::PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
-    if (dstComponents != OFX::ePixelComponentRGBA) {
-        OFX::throwSuiteStatusException(kOfxStatErrFormat);
+    // get bitdepth and channels
+    BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
+    PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
+    if ( (dstBitDepth != eBitDepthFloat) || (dstComponents != ePixelComponentRGBA) ) {
+        throwSuiteStatusException(kOfxStatErrFormat);
         return;
     }
 
@@ -153,8 +106,8 @@ void TextOFXPlugin::render(const OFX::RenderArguments &args)
     OfxRectI dstBounds = dstImg->getBounds();
     OfxRectI dstRod = dstImg->getRegionOfDefinition();
     if(args.renderWindow.x1 < dstBounds.x1 || args.renderWindow.x1 >= dstBounds.x2 || args.renderWindow.y1 < dstBounds.y1 || args.renderWindow.y1 >= dstBounds.y2 ||
-       args.renderWindow.x2 <= dstBounds.x1 || args.renderWindow.x2 > dstBounds.x2 || args.renderWindow.y2 <= dstBounds.y1 || args.renderWindow.y2 > dstBounds.y2) {
-        OFX::throwSuiteStatusException(kOfxStatErrValue);
+            args.renderWindow.x2 <= dstBounds.x1 || args.renderWindow.x2 > dstBounds.x2 || args.renderWindow.y2 <= dstBounds.y1 || args.renderWindow.y2 > dstBounds.y2) {
+        throwSuiteStatusException(kOfxStatErrValue);
         return;
     }
 
@@ -240,7 +193,7 @@ void TextOFXPlugin::render(const OFX::RenderArguments &args)
                                                                  args.renderScale.y,
                                                                  0,
                                                                  true /* flip */);
-    if (!result.success || (result.sW != width || result.sH != height)) {
+    if ( !result.success || (result.sW != width || result.sH != height) ) {
         setPersistentMessage(Message::eMessageError, "", "Text Renderer failed");
         throwSuiteStatusException(kOfxStatErrFormat);
         return;
@@ -263,15 +216,15 @@ void TextOFXPlugin::render(const OFX::RenderArguments &args)
     pixelData = nullptr;
 }
 
-void TextOFXPlugin::changedParam(const OFX::InstanceChangedArgs &args,
+void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
                                  const std::string &paramName)
 {
-    if (!kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.)) {
-        OFX::throwSuiteStatusException(kOfxStatFailed);
+    clearPersistentMessage();
+
+    if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
+        throwSuiteStatusException(kOfxStatFailed);
         return;
     }
-
-    clearPersistentMessage();
 
     if (paramName == kParamFontName) {
         /*int selected;
@@ -285,35 +238,26 @@ void TextOFXPlugin::changedParam(const OFX::InstanceChangedArgs &args,
         // workaround for fusion
         int selected = -1;
         _fontName->getValue(selected);
-        if (selected<=_fonts.size()) {
-            _font->setValue(_fonts.at(selected));
+        if ( selected <= _fonts.size() ) {
+            _font->setValue( _fonts.at(selected) );
         }
     }
 }
 
-mDeclarePluginFactory(TextOFXPluginFactory, {}, {});
-
-void TextOFXPluginFactory::describe(OFX::ImageEffectDescriptor &desc)
+void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 {
-    // basic labels
     desc.setLabel(kPluginName);
     desc.setPluginGrouping(kPluginGrouping);
     desc.setPluginDescription(kPluginDescription);
-
-    // add the supported contexts
     desc.addSupportedContext(eContextGenerator);
-
-    // add supported pixel depths
     desc.addSupportedBitDepth(eBitDepthFloat);
-
-    // add other
     desc.setSupportsTiles(0);
     desc.setSupportsMultiResolution(0);
     desc.setRenderThreadSafety(eRenderFullySafe);
 }
 
-void TextOFXPluginFactory::describeInContext(OFX::ImageEffectDescriptor &desc,
-                                             ContextEnum /*context*/)
+void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
+                                             ContextEnum /* context */)
 {
     // there has to be an input clip, even for generators
     ClipDescriptor* srcClip = desc.defineClip(kOfxImageEffectSimpleSourceClipName);
@@ -335,9 +279,9 @@ void TextOFXPluginFactory::describeInContext(OFX::ImageEffectDescriptor &desc,
         // workaround for stupid Fusion!
         _fonts = fonts;
         //
-        for(int i=0;i<_fonts.size();++i) { param->appendOption(fonts.at(i)); }
+        for(int i = 0; i < _fonts.size(); ++i) { param->appendOption( fonts.at(i) ); }
         param->setAnimates(false);
-        if (fonts.empty()) {
+        if ( fonts.empty() ) {
             param->appendOption("N/A");
         }
         if (page) {
@@ -566,13 +510,8 @@ void TextOFXPluginFactory::describeInContext(OFX::ImageEffectDescriptor &desc,
     }
 }
 
-ImageEffect* TextOFXPluginFactory::createInstance(OfxImageEffectHandle handle,
-                                                  ContextEnum /*context*/)
+ImageEffect *TextOFXPluginFactory::createInstance(OfxImageEffectHandle handle,
+                                                  ContextEnum /* context */)
 {
     return new TextOFXPlugin(handle);
 }
-
-static TextOFXPluginFactory p(kPluginIdentifier,
-                              kPluginVersionMajor,
-                              kPluginVersionMinor);
-mRegisterPluginFactoryInstance(p)
