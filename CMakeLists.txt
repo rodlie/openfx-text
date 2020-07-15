@@ -17,8 +17,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(Text CXX)
 
-add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0)
-add_definitions(-DkPluginName="TextOFX" -DkPluginGrouping="Draw" -DkPluginIdentifier="net.sf.openfx.Text")
+add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0 -DkSupportsRenderScale=1)
+add_definitions(-DkPluginName="TextFX" -DkPluginGrouping="Draw" -DkPluginIdentifier="net.sf.openfx.Text")
 add_definitions(-DkPluginDescription="Advanced internationalized OpenFX text generator. See https://github.com/fxarena/openfx-text for more information.")
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
@@ -49,6 +49,7 @@ if(NOT EXISTS ${OPENFX_PATH}/include)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common/RichText)
 include_directories(${OPENFX_PATH}/include)
 include_directories(${OFX_SUPPORT_HEADER_DIR})
@@ -74,8 +75,14 @@ FILE(GLOB SUPPORT_SOURCES
     "${OFX_SUPPORT_LIBRARY_DIR}/*.h"
 )
 
-FILE(GLOB SOURCES "Text.cpp" "common/RichText/RichText.cpp" "common/RichText/RichText.h")
-FILE(GLOB RESOURCES "common/net.sf.openfx.Text.png")
+file(GLOB SOURCES
+    "Text.cpp"
+    "common/RichText/RichText.cpp"
+    "common/RichText/RichText.h"
+    "common/TextHosts.h"
+    "common/TextParams.h"
+)
+file(GLOB RESOURCES "common/net.sf.openfx.Text.png")
 
 if (APPLE)
     set(FC_FONTS_DIR "<dir>/System/Library/Fonts</dir><dir>/Library/Fonts</dir><dir>~/Library/Fonts</dir>")
