@@ -1,10 +1,14 @@
-# openfx-text
+# OpenFX Text
 
-Alternative internationalized OpenFX text generator for DaVinci Resolve and Fusion Studio.
+Advanced internationalized [OpenFX](http://openeffects.org/) text generator for [Natron](https://natrongithub.github.io/), [The Foundry](https://www.foundry.com/) [Nuke](https://www.foundry.com/products/nuke), [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) / [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion).
 
 ## Windows
 
-Binaries for Windows 7/8/10 are available on ... (TBD)
+TBD
+
+## macOS
+
+TBD
 
 ## Linux
 
@@ -13,7 +17,7 @@ Binaries for Windows 7/8/10 are available on ... (TBD)
  * cmake and pkg-config
  * OpenGL development files and libraries
  * fontconfig development files and libraries
- * pango(cairo) development files and libraries
+ * pangocairo development files and libraries
 
 On Ubuntu install the following packages:
 
@@ -26,7 +30,7 @@ sudo apt install build-essential cmake pkg-config libfontconfig1-dev libcairo2-d
 ```
 git clone https://github.com/fxarena/openfx-text
 cd openfx-text
-git submodule update --init
+git submodule update -i
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/OFX/Plugins ..
 make && sudo make install

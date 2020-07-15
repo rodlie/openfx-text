@@ -1,6 +1,6 @@
-####################################################################
+########################################################################
 #
-# Copyright (C) 2019 Ole-André Rodlie <ole.andre.rodlie@gmail.com>
+# Copyright (C) 2019, 2020 Ole-André Rodlie <ole.andre.rodlie@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -12,18 +12,27 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
-####################################################################
+########################################################################
 
 cmake_minimum_required(VERSION 3.1)
 project(Text CXX)
 
 add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0)
-add_definitions(-DkPluginName="TextOFX" -DkPluginGrouping="FxArena" -DkPluginIdentifier="net.fxarena.openfx.TextOFX")
-add_definitions(-DkPluginDescription="Alternative internationalized OpenFX text generator. See https://text.fxarena.net or https://github.com/fxarena/openfx-text for more information.")
+add_definitions(-DkPluginName="TextOFX" -DkPluginGrouping="Draw" -DkPluginIdentifier="net.sf.openfx.Text")
+add_definitions(-DkPluginDescription="Internationalized OpenFX text generator. See https://github.com/fxarena/openfx-text for more information.")
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
 
+# Require OpenGL
+if(POLICY CMP0072)
+    # prefer GLVND ABI. We use the compatibility via OPENGL_LIBRARIES variable
+    # see https://cmake.org/cmake/help/v3.11/policy/CMP0072.html
+    # see https://cmake.org/cmake/help/v3.11/module/FindOpenGL.html#linux-specific
+    cmake_policy(SET CMP0072 NEW)
+endif()
 include(FindOpenGL REQUIRED)
+
+# Require fontconfig and pangocairo
 find_package(PkgConfig REQUIRED)
 pkg_search_module(FONTCONFIG REQUIRED fontconfig)
 pkg_search_module(PANGO REQUIRED pangocairo)
@@ -43,7 +52,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common/RichText)
 include_directories(${OPENFX_PATH}/include)
 include_directories(${OFX_SUPPORT_HEADER_DIR})
-#include_directories(${OPENFX_SUPPORT_LIBRARY_DIR})
 include_directories(${OPENFX_PATH}/Support/Plugins/include)
 
 add_compile_options(-Wall -Wextra)
@@ -66,15 +74,8 @@ FILE(GLOB SUPPORT_SOURCES
     "${OFX_SUPPORT_LIBRARY_DIR}/*.h"
 )
 
-FILE(GLOB SOURCES
-    "Text.cpp"
-    "common/RichText/RichText.cpp"
-)
-
-FILE(GLOB RESOURCES
-    "common/net.fxarena.openfx.TextOFX.png"
-    "common/FxArena.png"
-)
+FILE(GLOB SOURCES "Text.cpp" "common/RichText/RichText.cpp" "common/RichText/RichText.h")
+FILE(GLOB RESOURCES "common/net.sf.openfx.Text.png")
 
 if (APPLE)
     set(FC_FONTS_DIR "<dir>/System/Library/Fonts</dir><dir>/Library/Fonts</dir><dir>~/Library/Fonts</dir>")
@@ -87,9 +88,10 @@ else()
     set(FC_CACHE_DIR "<cachedir prefix=\"xdg\">fontconfig</cachedir><cachedir>~/.fontconfig</cachedir>")
 endif()
 configure_file(
-${CMAKE_CURRENT_SOURCE_DIR}/common/fonts.conf.in
-${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
-@ONLY)
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/fonts.conf.in
+    ${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
+    @ONLY
+)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
@@ -122,9 +124,9 @@ include_directories(
 )
 target_link_libraries(
     ${PROJECT_NAME}
-    ${OPENGL_gl_LIBRARY}
-    ${FONTCONFIG_STATIC_LDFLAGS}
-    ${PANGO_STATIC_LDFLAGS}
+    ${OPENGL_LIBRARIES}
+    ${FONTCONFIG_LDFLAGS}
+    ${PANGO_LDFLAGS}
 )
 
 # Find and set the arch name.
