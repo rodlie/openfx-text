@@ -78,8 +78,6 @@ file(GLOB SOURCES
     "Text.h"
     "CommonText.cpp"
     "CommonText.h"
-    "TextHosts.h"
-    "TextParams.h"
 )
 file(GLOB RESOURCES "net.sf.openfx.Text.png")
 
