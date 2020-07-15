@@ -16,7 +16,7 @@
 ####################################################################
 */
 
-#include "RichText.h"
+#include "CommonText.h"
 
 #include <iostream>
 #include <sstream>
@@ -26,13 +26,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-bool RichText::fileExists(const std::string &str)
+bool CommonText::fileExists(const std::string &str)
 {
     struct stat st;
     return (stat(str.c_str(), &st) == 0);
 }
 
-const std::string RichText::extract(const std::string &str,
+const std::string CommonText::extract(const std::string &str,
                                     const std::string &start,
                                     const std::string &end)
 {
@@ -43,13 +43,13 @@ const std::string RichText::extract(const std::string &str,
     return str.substr(startIndex, endIndex - startIndex);
 }
 
-bool RichText::compare(const std::string &l,
+bool CommonText::compare(const std::string &l,
                        const std::string &r)
 {
     return (l==r);
 }
 
-bool RichText::replace(std::string &str,
+bool CommonText::replace(std::string &str,
                        const std::string &from,
                        const std::string &to)
 {
@@ -59,7 +59,7 @@ bool RichText::replace(std::string &str,
     return true;
 }
 
-const std::string RichText::trimmed(const std::string &str,
+const std::string CommonText::trimmed(const std::string &str,
                                     bool whitespace,
                                     bool singlequote,
                                     bool doublequote)
@@ -86,19 +86,19 @@ const std::string RichText::trimmed(const std::string &str,
     return result;
 }
 
-bool RichText::contains(const std::string &str,
+bool CommonText::contains(const std::string &str,
                         const std::string &what)
 {
     return str.find(what) != std::string::npos;
 }
 
-bool RichText::startsWith(const std::string &str,
+bool CommonText::startsWith(const std::string &str,
                           const std::string &what)
 {
     return str.rfind(what, 0) == 0;
 }
 
-double RichText::strTimeToSecs(const std::string &str)
+double CommonText::strTimeToSecs(const std::string &str)
 {
     size_t start = 0U;
     std::string delim = ":";
@@ -125,45 +125,45 @@ double RichText::strTimeToSecs(const std::string &str)
     return -1;
 }
 
-bool RichText::isHtml(const std::string &str)
+bool CommonText::isHtml(const std::string &str)
 {
-    return RichText::contains(str, "<html") ||
-           RichText::contains(str, "<head") ||
-           RichText::contains(str, "<body") ||
-           RichText::contains(str, "<font") ||
-           RichText::contains(str, "<p");
+    return CommonText::contains(str, "<html") ||
+           CommonText::contains(str, "<head") ||
+           CommonText::contains(str, "<body") ||
+           CommonText::contains(str, "<font") ||
+           CommonText::contains(str, "<p");
 }
 
-bool RichText::isRichText(const std::string &str,
+bool CommonText::isRichText(const std::string &str,
                           bool strictMode)
 {
-    bool result = RichText::contains(str, "<body");
+    bool result = CommonText::contains(str, "<body");
     if (strictMode) {
         return result && contains(str, "<meta name=\"qrichtext");
     }
     return result;
 }
 
-bool RichText::isNatronLegacyRichText(const std::string &str)
+bool CommonText::isNatronLegacyRichText(const std::string &str)
 {
-    return RichText::startsWith(str, "<font");
+    return CommonText::startsWith(str, "<font");
 }
 
-bool RichText::isMarkup(const std::string &str)
+bool CommonText::isMarkup(const std::string &str)
 {
-    return !RichText::isHtml(str) &&
-           !RichText::isRichText(str, true) &&
-           RichText::contains(str, "<span") &&
-           RichText::contains(str, "</span>");
+    return !CommonText::isHtml(str) &&
+           !CommonText::isRichText(str, true) &&
+           CommonText::contains(str, "<span") &&
+           CommonText::contains(str, "</span>");
 }
 
 // WIP
-const std::string RichText::convertHtmlToMarkup(const std::string &str,
+const std::string CommonText::convertHtmlToMarkup(const std::string &str,
                                                 double renderScale)
 {
     std::string result = str;
 
-    if (RichText::isNatronLegacyRichText(str)) {
+    if (CommonText::isNatronLegacyRichText(str)) {
          std::cout << "\n\n==========> THIS VERSION OF NATRON HAS LIMITED SUPPORT FOR RICH TEXT !!!" << std::endl;
     }
 
@@ -182,7 +182,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
 
     for (size_t i=0; i < tags.size(); ++i) {
         std::string startTag = "<" + tags[i];
-        if (RichText::contains(result, startTag)) {
+        if (CommonText::contains(result, startTag)) {
             if (startTag == "<body") { // body is used for START and END line
                 result.replace(result.find(startTag), startTag.length(), "<!_BODY");
                 std::string endTag = "/" + tags[i];
@@ -194,7 +194,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
             }
         }
         std::string endTag = "/" + tags[i];
-        if (RichText::contains(result, endTag)) {
+        if (CommonText::contains(result, endTag)) {
             while (result.find(endTag) != std::string::npos) {
                 result.replace(result.find(endTag), endTag.length(), "/!_SPAN");
             }
@@ -204,7 +204,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
     // std::cout << "\n\nHTML FILTER:\n\n" << result << std::endl;
 
     // go through each tag
-    bool bodyExists = RichText::contains(result, "<!_BODY");
+    bool bodyExists = CommonText::contains(result, "<!_BODY");
     bool bodyStart = false;
     bool bodyEnd = false;
     std::stringstream ss(result);
@@ -213,8 +213,8 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
         //// std::cout << "LINE: " << line << std::endl;
         // body stuff
         if (bodyExists) {
-            if (RichText::startsWith(line, "!_BODY")) { bodyStart = true; }
-            if (RichText::startsWith(line, "/!_BODY")) {
+            if (CommonText::startsWith(line, "!_BODY")) { bodyStart = true; }
+            if (CommonText::startsWith(line, "/!_BODY")) {
                 bodyEnd = true;
                 std::string tag = "/!_BODY";
                 line.replace(line.find(tag), tag.length(), "</span");
@@ -224,28 +224,28 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
             if (!bodyStart || bodyEnd) { continue; } // ignore everything before and after body
         }
         // get options from tag
-        if (RichText::startsWith(line, "!_")) {
+        if (CommonText::startsWith(line, "!_")) {
 
             // std::cout << "\n\nFOUND TAG: " << line << std::endl;
 
             // get css options
-            std::string getFontSizeCSS = RichText::trimmed(RichText::extract(line, "font-size:", ";"));
-            std::string getFontFamilyCSS = RichText::trimmed(RichText::extract(line, "font-family:", ";"), false /* whitespace */);
-            std::string getFontWeightCSS = RichText::trimmed(RichText::extract(line, "font-weight:", ";"), false /* whitespace */);
-            std::string getFontStyleCSS = RichText::trimmed(RichText::extract(line, "font-style:", ";"), false /* whitespace */);
-            std::string getFontColorCSS = RichText::trimmed(RichText::extract(line, "color:", ";"));
+            std::string getFontSizeCSS = CommonText::trimmed(CommonText::extract(line, "font-size:", ";"));
+            std::string getFontFamilyCSS = CommonText::trimmed(CommonText::extract(line, "font-family:", ";"), false /* whitespace */);
+            std::string getFontWeightCSS = CommonText::trimmed(CommonText::extract(line, "font-weight:", ";"), false /* whitespace */);
+            std::string getFontStyleCSS = CommonText::trimmed(CommonText::extract(line, "font-style:", ";"), false /* whitespace */);
+            std::string getFontColorCSS = CommonText::trimmed(CommonText::extract(line, "color:", ";"));
 
             // std::cout << "FONT CSS :size: " << getFontSizeCSS << " :family: " << getFontFamilyCSS << " :weight: " << getFontWeightCSS << " :style: " << getFontStyleCSS << " :color: " << getFontColorCSS << std::endl;
 
             // get html options
-            std::string getFontSizeHTML = RichText::trimmed(RichText::extract(line, "size=\"", "\""));
-            std::string getFontFamilyHTML = RichText::trimmed(RichText::extract(line, "face=\"", "\""), false /* whitespace */);
-            std::string getFontColorHTML = RichText::trimmed(RichText::extract(line, "color=\"", "\""));
+            std::string getFontSizeHTML = CommonText::trimmed(CommonText::extract(line, "size=\"", "\""));
+            std::string getFontFamilyHTML = CommonText::trimmed(CommonText::extract(line, "face=\"", "\""), false /* whitespace */);
+            std::string getFontColorHTML = CommonText::trimmed(CommonText::extract(line, "color=\"", "\""));
 
             // std::cout << "FONT HTML :size: " << getFontSizeHTML << " :family: " << getFontFamilyHTML << " :color: " << getFontColorHTML << std::endl;
 
             // check options
-            bool hasStyle = RichText::contains(line, "style=\"");
+            bool hasStyle = CommonText::contains(line, "style=\"");
             bool hasFontFamily = !getFontFamilyCSS.empty() || !getFontFamilyHTML.empty();
             bool hasFontSize = !getFontSizeCSS.empty() || !getFontSizeHTML.empty();
             bool hasFontColor = !getFontSizeCSS.empty() || !getFontSizeHTML.empty();
@@ -255,7 +255,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
             std::string fontColor = !getFontColorCSS.empty()?getFontColorCSS:getFontColorHTML;
 
             // remove 'pt' in font size
-            if (RichText::contains(fontSize, "pt")) {
+            if (CommonText::contains(fontSize, "pt")) {
                 fontSize.replace(fontSize.find("pt"), sizeof("pt"), "");
             }
 
@@ -270,7 +270,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
 
             // remove style opt if found
             if (hasStyle) {
-                std::string opt = RichText::extract(line, "style=\"", "\"");
+                std::string opt = CommonText::extract(line, "style=\"", "\"");
                 if (!opt.empty()) {
                     //// std::cout << "STYLE? " << opt << std::endl;
                     std::string style = "style=\"" + opt + "\"";
@@ -292,7 +292,7 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
 
             // add font family (and size if exists)
             if (hasFontFamily && !fontFamily.empty()) {
-                std::string span = RichText::startsWith(line, "!_BODY")?"!_BODY":"!_SPAN";
+                std::string span = CommonText::startsWith(line, "!_BODY")?"!_BODY":"!_SPAN";
                 std::string fontDesc = span + " font_desc=\"" + fontFamily;
                 if (hasFontSize) { fontDesc += " " + fontSize; }
                 fontDesc += "\" ";
@@ -308,25 +308,25 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
 
             // add font color
             if (hasFontColor && !fontColor.empty() && getFontFamilyHTML.empty()) {
-                std::string span = RichText::startsWith(line, "!_BODY")?"!_BODY":"!_SPAN";
+                std::string span = CommonText::startsWith(line, "!_BODY")?"!_BODY":"!_SPAN";
                 std::string opt = span + " color=\"" + fontColor + "\" ";
                 line.replace(line.find(span), span.length(), opt);
             }
         }
         // fix tag TODO!
-        if (RichText::startsWith(line, "/!_BODY")) {
+        if (CommonText::startsWith(line, "/!_BODY")) {
             std::string tag = "/!_BODY";
             line.replace(line.find(tag), tag.length(), "</span");
         }
-        if (RichText::startsWith(line, "/!_SPAN")) {
+        if (CommonText::startsWith(line, "/!_SPAN")) {
             std::string tag = "/!_SPAN";
             line.replace(line.find(tag), tag.length(), "</span");
         }
-        if (RichText::startsWith(line, "!_BODY")) {
+        if (CommonText::startsWith(line, "!_BODY")) {
             std::string tag = "!_BODY";
             line.replace(line.find(tag), tag.length(), "<span");
         }
-        if (RichText::startsWith(line, "!_SPAN")) {
+        if (CommonText::startsWith(line, "!_SPAN")) {
             std::string tag = "!_SPAN";
             line.replace(line.find(tag), tag.length(), "<span");
         }
@@ -339,15 +339,15 @@ const std::string RichText::convertHtmlToMarkup(const std::string &str,
     return result;
 }
 
-void RichText::setLayoutAlign(PangoLayout *layout,
+void CommonText::setLayoutAlign(PangoLayout *layout,
                               int align)
 {
     if (!layout) { return; }
     switch(align) {
-    case RichTextAlignRight:
+    case CommonTextAlignRight:
         pango_layout_set_alignment(layout, PANGO_ALIGN_RIGHT);
         break;
-    case RichTextAlignCenter:
+    case CommonTextAlignCenter:
         pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
         break;
     default:
@@ -356,15 +356,15 @@ void RichText::setLayoutAlign(PangoLayout *layout,
     }
 }
 
-void RichText::setLayoutWrap(PangoLayout *layout,
+void CommonText::setLayoutWrap(PangoLayout *layout,
                              int wrap)
 {
     if (!layout) { return; }
     switch(wrap) {
-    case RichTextWrapChar:
+    case CommonTextWrapChar:
         pango_layout_set_wrap(layout, PANGO_WRAP_CHAR);
         break;
-    case RichTextWrapWordChar:
+    case CommonTextWrapWordChar:
         pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
         break;
     default:
@@ -373,49 +373,49 @@ void RichText::setLayoutWrap(PangoLayout *layout,
     }
 }
 
-void RichText::setLayoutJustify(PangoLayout *layout,
+void CommonText::setLayoutJustify(PangoLayout *layout,
                                 bool justify)
 {
     if (!layout) { return; }
     pango_layout_set_justify(layout, justify);
 }
 
-void RichText::setLayoutMarkup(PangoLayout *layout,
+void CommonText::setLayoutMarkup(PangoLayout *layout,
                                const std::string &str,
                                double renderScale)
 {
     if (!layout || str.empty()) { return; }
     std::string markup = str;
-    if (RichText::isHtml(markup)) {
-        markup = RichText::convertHtmlToMarkup(markup, renderScale);
+    if (CommonText::isHtml(markup)) {
+        markup = CommonText::convertHtmlToMarkup(markup, renderScale);
     }
     pango_layout_set_markup(layout,
                             markup.c_str(),
                             -1);
 }
 
-void RichText::setLayoutWidth(PangoLayout *layout,
+void CommonText::setLayoutWidth(PangoLayout *layout,
                               int width)
 {
     if (!layout || width<=0) { return; }
     pango_layout_set_width(layout, width * PANGO_SCALE);
 }
 
-void RichText::setFontHintStyleOption(cairo_font_options_t *options,
+void CommonText::setFontHintStyleOption(cairo_font_options_t *options,
                                       int hint)
 {
     if (!options) { return; }
     switch(hint) {
-    case RichTextHintNone:
+    case CommonTextHintNone:
         cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_NONE);
         break;
-    case RichTextHintSlight:
+    case CommonTextHintSlight:
         cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_SLIGHT);
         break;
-    case RichTextHintMedium:
+    case CommonTextHintMedium:
         cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_MEDIUM);
         break;
-    case RichTextHintFull:
+    case CommonTextHintFull:
         cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_FULL);
         break;
     default:
@@ -424,15 +424,15 @@ void RichText::setFontHintStyleOption(cairo_font_options_t *options,
     }
 }
 
-void RichText::setFontHintMetricsOption(cairo_font_options_t *options,
+void CommonText::setFontHintMetricsOption(cairo_font_options_t *options,
                                        int metric)
 {
     if (!options) { return; }
     switch(metric) {
-    case RichTextHintMetricsOff:
+    case CommonTextHintMetricsOff:
         cairo_font_options_set_hint_metrics(options, CAIRO_HINT_METRICS_OFF);
         break;
-    case RichTextHintMetricsOn:
+    case CommonTextHintMetricsOn:
         cairo_font_options_set_hint_metrics(options, CAIRO_HINT_METRICS_ON);
         break;
     default:
@@ -441,18 +441,18 @@ void RichText::setFontHintMetricsOption(cairo_font_options_t *options,
     }
 }
 
-void RichText::setFontAntialiasOption(cairo_font_options_t *options,
+void CommonText::setFontAntialiasOption(cairo_font_options_t *options,
                                       int antialias)
 {
     if (!options) { return; }
     switch(antialias) {
-    case RichTextFontAntialiasNone:
+    case CommonTextFontAntialiasNone:
         cairo_font_options_set_antialias(options, CAIRO_ANTIALIAS_NONE);
         break;
-    case RichTextFontAntialiasGray:
+    case CommonTextFontAntialiasGray:
         cairo_font_options_set_antialias(options, CAIRO_ANTIALIAS_GRAY);
         break;
-    case RichTextFontAntialiasSubpixel:
+    case CommonTextFontAntialiasSubpixel:
         cairo_font_options_set_antialias(options, CAIRO_ANTIALIAS_SUBPIXEL);
         break;
     default:
@@ -461,21 +461,21 @@ void RichText::setFontAntialiasOption(cairo_font_options_t *options,
     }
 }
 
-void RichText::setFontSubpixelOption(cairo_font_options_t *options,
+void CommonText::setFontSubpixelOption(cairo_font_options_t *options,
                                      int subpixel)
 {
     if (!options) { return; }
     switch(subpixel) {
-    case RichTextFontSubpixelRGB:
+    case CommonTextFontSubpixelRGB:
         cairo_font_options_set_subpixel_order(options, CAIRO_SUBPIXEL_ORDER_RGB);
         break;
-    case RichTextFontSubpixelBGR:
+    case CommonTextFontSubpixelBGR:
         cairo_font_options_set_subpixel_order(options, CAIRO_SUBPIXEL_ORDER_BGR);
         break;
-    case RichTextFontSubpixelVRGB:
+    case CommonTextFontSubpixelVRGB:
         cairo_font_options_set_subpixel_order(options, CAIRO_SUBPIXEL_ORDER_VRGB);
         break;
-    case RichTextFontSubpixelVBGR:
+    case CommonTextFontSubpixelVBGR:
         cairo_font_options_set_subpixel_order(options, CAIRO_SUBPIXEL_ORDER_VBGR);
         break;
     default:
@@ -484,33 +484,33 @@ void RichText::setFontSubpixelOption(cairo_font_options_t *options,
     }
 }
 
-void RichText::setFontStretchDescription(PangoFontDescription *description,
+void CommonText::setFontStretchDescription(PangoFontDescription *description,
                                          int stretch)
 {
     if (!description) { return; }
     switch(stretch) {
-    case RichTextFontStretchUltraCondensed:
+    case CommonTextFontStretchUltraCondensed:
         pango_font_description_set_stretch(description, PANGO_STRETCH_ULTRA_CONDENSED);
         break;
-    case RichTextFontStretchExtraCondensed:
+    case CommonTextFontStretchExtraCondensed:
         pango_font_description_set_stretch(description, PANGO_STRETCH_EXTRA_CONDENSED);
         break;
-    case RichTextFontStretchCondensed:
+    case CommonTextFontStretchCondensed:
         pango_font_description_set_stretch(description, PANGO_STRETCH_CONDENSED);
         break;
-    case RichTextFontStretchSemiCondensed:
+    case CommonTextFontStretchSemiCondensed:
         pango_font_description_set_stretch(description, PANGO_STRETCH_SEMI_CONDENSED);
         break;
-    case RichTextFontStretchSemiExpanded:
+    case CommonTextFontStretchSemiExpanded:
         pango_font_description_set_stretch(description, PANGO_STRETCH_SEMI_EXPANDED);
         break;
-    case RichTextFontStretchExpanded:
+    case CommonTextFontStretchExpanded:
         pango_font_description_set_stretch(description, PANGO_STRETCH_EXPANDED);
         break;
-    case RichTextFontStretchExtraExpanded:
+    case CommonTextFontStretchExtraExpanded:
         pango_font_description_set_stretch(description, PANGO_STRETCH_EXTRA_EXPANDED);
         break;
-    case RichTextFontStretchUltraExpanded:
+    case CommonTextFontStretchUltraExpanded:
         pango_font_description_set_stretch(description, PANGO_STRETCH_ULTRA_EXPANDED);
         break;
     default:
@@ -519,42 +519,42 @@ void RichText::setFontStretchDescription(PangoFontDescription *description,
     }
 }
 
-void RichText::setFontWeightDescription(PangoFontDescription *description,
+void CommonText::setFontWeightDescription(PangoFontDescription *description,
                                         int weight)
 {
     if (!description) { return; }
     switch(weight) {
-    case RichTextFontWeightThin:
+    case CommonTextFontWeightThin:
         pango_font_description_set_weight(description, PANGO_WEIGHT_THIN);
         break;
-    case RichTextFontWeightUltraLight:
+    case CommonTextFontWeightUltraLight:
         pango_font_description_set_weight(description, PANGO_WEIGHT_ULTRALIGHT);
         break;
-    case RichTextFontWeightLight:
+    case CommonTextFontWeightLight:
         pango_font_description_set_weight(description, PANGO_WEIGHT_LIGHT);
         break;
-    case RichTextFontWeightSemiLight:
+    case CommonTextFontWeightSemiLight:
         pango_font_description_set_weight(description, PANGO_WEIGHT_SEMILIGHT);
         break;
-    case RichTextFontWeightBook:
+    case CommonTextFontWeightBook:
         pango_font_description_set_weight(description, PANGO_WEIGHT_BOOK);
         break;
-    case RichTextFontWeightMedium:
+    case CommonTextFontWeightMedium:
         pango_font_description_set_weight(description, PANGO_WEIGHT_MEDIUM);
         break;
-    case RichTextFontWeightSemiBold:
+    case CommonTextFontWeightSemiBold:
         pango_font_description_set_weight(description, PANGO_WEIGHT_SEMIBOLD);
         break;
-    case RichTextFontWeightBold:
+    case CommonTextFontWeightBold:
         pango_font_description_set_weight(description, PANGO_WEIGHT_BOLD);
         break;
-    case RichTextFontWeightUltraBold:
+    case CommonTextFontWeightUltraBold:
         pango_font_description_set_weight(description, PANGO_WEIGHT_ULTRABOLD);
         break;
-    case RichTextFontWeightHeavy:
+    case CommonTextFontWeightHeavy:
         pango_font_description_set_weight(description, PANGO_WEIGHT_HEAVY);
         break;
-    case RichTextFontWeightUltraHeavy:
+    case CommonTextFontWeightUltraHeavy:
         pango_font_description_set_weight(description, PANGO_WEIGHT_ULTRAHEAVY);
         break;
     default:
@@ -563,7 +563,7 @@ void RichText::setFontWeightDescription(PangoFontDescription *description,
     }
 }
 
-void RichText::setupFontmap(FcConfig *fc,
+void CommonText::setupFontmap(FcConfig *fc,
                             PangoFontMap *map)
 {
     if (!fc) { return; }
@@ -575,7 +575,7 @@ void RichText::setupFontmap(FcConfig *fc,
     pango_cairo_font_map_set_default((PangoCairoFontMap*)(map));
 }
 
-RichText::RichTextRenderResult RichText::renderRichText(int width,
+CommonText::CommonTextRenderResult CommonText::renderRichText(int width,
                                                         int height,
                                                         FcConfig *fc,
                                                         const std::string &html,
@@ -589,7 +589,7 @@ RichText::RichTextRenderResult RichText::renderRichText(int width,
 {
     std::cout << "RICHT TEXT WIP RENDER " << width << " " << height << " " << rX << " " << rY <<std::endl;
 
-    RichTextRenderResult result;
+    CommonTextRenderResult result;
     result.success = false;
 
     if (!fc) {
@@ -599,7 +599,7 @@ RichText::RichTextRenderResult RichText::renderRichText(int width,
 
     // setup font map
     PangoFontMap *map = pango_cairo_font_map_get_default();
-    RichText::setupFontmap(fc, map);
+    CommonText::setupFontmap(fc, map);
 
     // setup surface and layout
     cairo_t *cr;
@@ -617,13 +617,13 @@ RichText::RichTextRenderResult RichText::renderRichText(int width,
     }
 
     // render layout
-    RichText::setLayoutMarkup(layout, html, rX);
+    CommonText::setLayoutMarkup(layout, html, rX);
     if (width>0) {
-        RichText::setLayoutWidth(layout, width);
+        CommonText::setLayoutWidth(layout, width);
     }
-    RichText::setLayoutWrap(layout, wrap);
-    RichText::setLayoutAlign(layout, align);
-    RichText::setLayoutJustify(layout, justify);
+    CommonText::setLayoutWrap(layout, wrap);
+    CommonText::setLayoutAlign(layout, align);
+    CommonText::setLayoutJustify(layout, justify);
 
     // update layout
     pango_cairo_update_layout(cr, layout);
@@ -677,12 +677,12 @@ RichText::RichTextRenderResult RichText::renderRichText(int width,
     return  result;
 }
 
-RichText::RichTextRenderResult RichText::renderText(int width,
+CommonText::CommonTextRenderResult CommonText::renderText(int width,
                                                     int height,
                                                     FcConfig *fc,
                                                     const std::string &txt,
                                                     const std::string &font,
-                                                    RichText::RichTextStyle style,
+                                                    CommonText::CommonTextStyle style,
                                                     double x,
                                                     double y,
                                                     double scX,
@@ -695,7 +695,7 @@ RichText::RichTextRenderResult RichText::renderText(int width,
                                                     bool flip,
                                                     bool noBuffer)
 {
-    RichTextRenderResult result;
+    CommonTextRenderResult result;
     result.success = false;
 
     if (!fc) {
@@ -705,7 +705,7 @@ RichText::RichTextRenderResult RichText::renderText(int width,
 
     // setup font map
     PangoFontMap *map = pango_cairo_font_map_get_default();
-    RichText::setupFontmap(fc, map);
+    CommonText::setupFontmap(fc, map);
 
     // setup surface and layout
     cairo_t *cr;
@@ -736,10 +736,10 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     cairo_fill(cr);
 
     // set font options
-    RichText::setFontHintStyleOption(options, style.hint);
-    RichText::setFontHintMetricsOption(options, style.metrics);
-    RichText::setFontAntialiasOption(options, style.aa);
-    RichText::setFontSubpixelOption(options, style.subpixel);
+    CommonText::setFontHintStyleOption(options, style.hint);
+    CommonText::setFontHintMetricsOption(options, style.metrics);
+    CommonText::setFontAntialiasOption(options, style.aa);
+    CommonText::setFontSubpixelOption(options, style.subpixel);
 
     pango_cairo_context_set_font_options(pango_layout_get_context(layout), options);
 
@@ -749,15 +749,15 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     // set font desc
     PangoFontDescription *desc;
     desc = pango_font_description_from_string(font.c_str());
-    RichText::setFontWeightDescription(desc, style.weight);
-    RichText::setFontStretchDescription(desc, style.stretch);
+    CommonText::setFontWeightDescription(desc, style.weight);
+    CommonText::setFontStretchDescription(desc, style.stretch);
     pango_layout_set_font_description(layout, desc);
     pango_font_description_free(desc);
 
     // set layout
-    RichText::setLayoutWidth(layout, width);
-    RichText::setLayoutWrap(layout, style.wrap);
-    RichText::setLayoutAlign(layout, style.align);
+    CommonText::setLayoutWidth(layout, width);
+    CommonText::setLayoutWrap(layout, style.wrap);
+    CommonText::setLayoutAlign(layout, style.align);
 
     if (style.valign != 0) {
         int text_width, text_height;
@@ -772,7 +772,7 @@ RichText::RichTextRenderResult RichText::renderText(int width,
         }
     }
 
-    RichText::setLayoutJustify(layout, style.justify);
+    CommonText::setLayoutJustify(layout, style.justify);
 
     if (style.letterSpace != 0) {
         pango_attr_list_insert(alist,pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
@@ -855,16 +855,16 @@ RichText::RichTextRenderResult RichText::renderText(int width,
     return result;
 }
 
-std::vector<RichText::RichTextSubtitle> RichText::parseSRT(const std::string &filename)
+std::vector<CommonText::CommonTextSubtitle> CommonText::parseSRT(const std::string &filename)
 {
     std::string delimiter = " --> ";
-    std::vector<RichTextSubtitle> sdata;
+    std::vector<CommonTextSubtitle> sdata;
     std::ifstream file;
     file.open(filename.c_str());
     if (file.is_open()) {
         bool found = false;
         int i = 0;
-        RichTextSubtitle tdata;
+        CommonTextSubtitle tdata;
         while (!file.eof()) {
             std::string line;
             std::getline(file, line);
@@ -913,7 +913,7 @@ std::vector<RichText::RichTextSubtitle> RichText::parseSRT(const std::string &fi
     return sdata;
 }
 
-std::vector<std::string> RichText::getFontFamilyList(FcConfig *fc,
+std::vector<std::string> CommonText::getFontFamilyList(FcConfig *fc,
                                                      const std::string &extra,
                                                      bool extraisDir)
 {
@@ -947,13 +947,13 @@ std::vector<std::string> RichText::getFontFamilyList(FcConfig *fc,
 
     // sort and return
     fonts.sort();
-    fonts.erase(std::unique(fonts.begin(), fonts.end(), RichText::compare), fonts.end());
+    fonts.erase(std::unique(fonts.begin(), fonts.end(), CommonText::compare), fonts.end());
 
     std::vector<std::string> result(fonts.begin(), fonts.end());
     return result;
 }
 
-std::string RichText::readTextFile(const std::string &txt)
+std::string CommonText::readTextFile(const std::string &txt)
 {
     std::string result;
     if (txt.empty()) { return result; }

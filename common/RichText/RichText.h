@@ -24,85 +24,85 @@
 #include <pango/pangofc-fontmap.h>
 #include <fontconfig/fontconfig.h>
 
-class RichText
+class CommonText
 {
 public:
-    enum RichTextAlignment
+    enum CommonTextAlignment
     {
-        RichTextAlignLeft,
-        RichTextAlignRight,
-        RichTextAlignCenter
+        CommonTextAlignLeft,
+        CommonTextAlignRight,
+        CommonTextAlignCenter
     };
-    enum RichTextVAligmnet
+    enum CommonTextVAligmnet
     {
-        RichTextAlignTop,
-        RichTextAlignMiddle,
-        RichTextAlignBottom
+        CommonTextAlignTop,
+        CommonTextAlignMiddle,
+        CommonTextAlignBottom
     };
-    enum RichTextWrap
+    enum CommonTextWrap
     {
-        RichTextWrapNone,
-        RichTextWrapWord,
-        RichTextWrapChar,
-        RichTextWrapWordChar
+        CommonTextWrapNone,
+        CommonTextWrapWord,
+        CommonTextWrapChar,
+        CommonTextWrapWordChar
     };
-    enum RichTextHintStyle
+    enum CommonTextHintStyle
     {
-        RichTextHintDefault,
-        RichTextHintNone,
-        RichTextHintSlight,
-        RichTextHintMedium,
-        RichTextHintFull
+        CommonTextHintDefault,
+        CommonTextHintNone,
+        CommonTextHintSlight,
+        CommonTextHintMedium,
+        CommonTextHintFull
     };
-    enum RichTextHintMetrics
+    enum CommonTextHintMetrics
     {
-        RichTextHintMetricsDefault,
-        RichTextHintMetricsOn,
-        RichTextHintMetricsOff
+        CommonTextHintMetricsDefault,
+        CommonTextHintMetricsOn,
+        CommonTextHintMetricsOff
     };
-    enum RichTextFontAntialias
+    enum CommonTextFontAntialias
     {
-        RichTextFontAntialiasDefault,
-        RichTextFontAntialiasNone,
-        RichTextFontAntialiasGray,
-        RichTextFontAntialiasSubpixel
+        CommonTextFontAntialiasDefault,
+        CommonTextFontAntialiasNone,
+        CommonTextFontAntialiasGray,
+        CommonTextFontAntialiasSubpixel
     };
-    enum RichTextFontSubpixel
+    enum CommonTextFontSubpixel
     {
-        RichTextFontSubpixelDefault,
-        RichTextFontSubpixelRGB,
-        RichTextFontSubpixelBGR,
-        RichTextFontSubpixelVRGB,
-        RichTextFontSubpixelVBGR
+        CommonTextFontSubpixelDefault,
+        CommonTextFontSubpixelRGB,
+        CommonTextFontSubpixelBGR,
+        CommonTextFontSubpixelVRGB,
+        CommonTextFontSubpixelVBGR
     };
-    enum RichTextFontStretch
+    enum CommonTextFontStretch
     {
-        RichTextFontStretchUltraCondensed,
-        RichTextFontStretchExtraCondensed,
-        RichTextFontStretchCondensed,
-        RichTextFontStretchSemiCondensed,
-        RichTextFontStretchNormal,
-        RichTextFontStretchSemiExpanded,
-        RichTextFontStretchExpanded,
-        RichTextFontStretchExtraExpanded,
-        RichTextFontStretchUltraExpanded
+        CommonTextFontStretchUltraCondensed,
+        CommonTextFontStretchExtraCondensed,
+        CommonTextFontStretchCondensed,
+        CommonTextFontStretchSemiCondensed,
+        CommonTextFontStretchNormal,
+        CommonTextFontStretchSemiExpanded,
+        CommonTextFontStretchExpanded,
+        CommonTextFontStretchExtraExpanded,
+        CommonTextFontStretchUltraExpanded
     };
-    enum RichTextFontWeight
+    enum CommonTextFontWeight
     {
-        RichTextFontWeightThin,
-        RichTextFontWeightUltraLight,
-        RichTextFontWeightLight,
-        RichTextFontWeightSemiLight,
-        RichTextFontWeightBook,
-        RichTextFontWeightNormal,
-        RichTextFontWeightMedium,
-        RichTextFontWeightSemiBold,
-        RichTextFontWeightBold,
-        RichTextFontWeightUltraBold,
-        RichTextFontWeightHeavy,
-        RichTextFontWeightUltraHeavy
+        CommonTextFontWeightThin,
+        CommonTextFontWeightUltraLight,
+        CommonTextFontWeightLight,
+        CommonTextFontWeightSemiLight,
+        CommonTextFontWeightBook,
+        CommonTextFontWeightNormal,
+        CommonTextFontWeightMedium,
+        CommonTextFontWeightSemiBold,
+        CommonTextFontWeightBold,
+        CommonTextFontWeightUltraBold,
+        CommonTextFontWeightHeavy,
+        CommonTextFontWeightUltraHeavy
     };
-    struct RichTextRenderResult
+    struct CommonTextRenderResult
     {
         bool success;
         unsigned char* buffer;
@@ -111,20 +111,20 @@ public:
         int pW; // pango layout width
         int pH; // pango layout height
     };
-    struct RichTextSubtitle
+    struct CommonTextSubtitle
     {
         double start;
         double end;
         std::string str;
     };
-    struct RichTextColor
+    struct CommonTextColor
     {
         double r;
         double g;
         double b;
         double a;
     };
-    struct RichTextStyle
+    struct CommonTextStyle
     {
         int wrap;
         int align;
@@ -138,9 +138,9 @@ public:
         int subpixel;
         int letterSpace;
         double strokeWidth;
-        RichTextColor textColor;
-        RichTextColor strokeColor;
-        RichTextColor backgroundColor;
+        CommonTextColor textColor;
+        CommonTextColor strokeColor;
+        CommonTextColor backgroundColor;
     };
 
     /** @brief file exists? */
@@ -196,11 +196,11 @@ public:
 
     /** @brief set pango layout text align */
     static void setLayoutAlign(PangoLayout *layout,
-                               int align = RichTextAlignLeft);
+                               int align = CommonTextAlignLeft);
 
     /** @brief set pango layout word wrap */
     static void setLayoutWrap(PangoLayout *layout,
-                              int wrap = RichTextWrapWord);
+                              int wrap = CommonTextWrapWord);
 
     /** @brief set pango layout text justify */
     static void setLayoutJustify(PangoLayout *layout,
@@ -217,27 +217,27 @@ public:
 
     /** @brief set font hint style */
     static void setFontHintStyleOption(cairo_font_options_t *options,
-                                       int hint = RichTextHintDefault);
+                                       int hint = CommonTextHintDefault);
 
     /** @brief set font hint metrics */
     static void setFontHintMetricsOption(cairo_font_options_t *options,
-                                         int metric = RichTextHintMetricsDefault);
+                                         int metric = CommonTextHintMetricsDefault);
 
     /** @brief set font antialias */
     static void setFontAntialiasOption(cairo_font_options_t *options,
-                                       int antialias = RichTextFontAntialiasDefault);
+                                       int antialias = CommonTextFontAntialiasDefault);
 
     /** @brief set font subpixel order */
     static void setFontSubpixelOption(cairo_font_options_t *options,
-                                      int subpixel = RichTextFontSubpixelDefault);
+                                      int subpixel = CommonTextFontSubpixelDefault);
 
     /** @brief set font stretch */
     static void setFontStretchDescription(PangoFontDescription *description,
-                                          int stretch = RichTextFontStretchNormal);
+                                          int stretch = CommonTextFontStretchNormal);
 
     /** @brief set font weight */
     static void setFontWeightDescription(PangoFontDescription *description,
-                                         int weight = RichTextFontWeightNormal);
+                                         int weight = CommonTextFontWeightNormal);
 
     /** @brief setup pango fontmap (freetype+fontconfig) */
     static void setupFontmap(FcConfig *fc,
@@ -262,7 +262,7 @@ public:
                                            FcConfig *fc,
                                            const std::string &txt,
                                            const std::string &font,
-                                           RichTextStyle style,
+                                           CommonTextStyle style,
                                            double x,
                                            double y,
                                            double scX,
@@ -276,7 +276,7 @@ public:
                                            bool noBuffer = false);
 
     /** @brief parse SRT subtitle file */
-    static std::vector<RichTextSubtitle> parseSRT(const std::string &filename);
+    static std::vector<CommonTextSubtitle> parseSRT(const std::string &filename);
 
     /** @brief generate font family list */
     static std::vector<std::string> getFontFamilyList(FcConfig *fc,
