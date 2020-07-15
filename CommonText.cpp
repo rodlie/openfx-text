@@ -33,8 +33,8 @@ bool CommonText::fileExists(const std::string &str)
 }
 
 const std::string CommonText::extract(const std::string &str,
-                                    const std::string &start,
-                                    const std::string &end)
+                                      const std::string &start,
+                                      const std::string &end)
 {
     std::size_t startIndex = str.find(start);
     if (startIndex == std::string::npos) { return std::string(); }
@@ -44,14 +44,14 @@ const std::string CommonText::extract(const std::string &str,
 }
 
 bool CommonText::compare(const std::string &l,
-                       const std::string &r)
+                         const std::string &r)
 {
     return (l==r);
 }
 
 bool CommonText::replace(std::string &str,
-                       const std::string &from,
-                       const std::string &to)
+                         const std::string &from,
+                         const std::string &to)
 {
     size_t start_pos = str.find(from);
     if (start_pos == std::string::npos) { return false; }
@@ -60,9 +60,9 @@ bool CommonText::replace(std::string &str,
 }
 
 const std::string CommonText::trimmed(const std::string &str,
-                                    bool whitespace,
-                                    bool singlequote,
-                                    bool doublequote)
+                                      bool whitespace,
+                                      bool singlequote,
+                                      bool doublequote)
 {
     std::string result = str;
     if (whitespace) {
@@ -87,13 +87,13 @@ const std::string CommonText::trimmed(const std::string &str,
 }
 
 bool CommonText::contains(const std::string &str,
-                        const std::string &what)
+                          const std::string &what)
 {
     return str.find(what) != std::string::npos;
 }
 
 bool CommonText::startsWith(const std::string &str,
-                          const std::string &what)
+                            const std::string &what)
 {
     return str.rfind(what, 0) == 0;
 }
@@ -135,7 +135,7 @@ bool CommonText::isHtml(const std::string &str)
 }
 
 bool CommonText::isRichText(const std::string &str,
-                          bool strictMode)
+                            bool strictMode)
 {
     bool result = CommonText::contains(str, "<body");
     if (strictMode) {
@@ -159,7 +159,7 @@ bool CommonText::isMarkup(const std::string &str)
 
 // WIP
 const std::string CommonText::convertHtmlToMarkup(const std::string &str,
-                                                double renderScale)
+                                                  double renderScale)
 {
     std::string result = str;
 
@@ -340,7 +340,7 @@ const std::string CommonText::convertHtmlToMarkup(const std::string &str,
 }
 
 void CommonText::setLayoutAlign(PangoLayout *layout,
-                              int align)
+                                int align)
 {
     if (!layout) { return; }
     switch(align) {
@@ -357,7 +357,7 @@ void CommonText::setLayoutAlign(PangoLayout *layout,
 }
 
 void CommonText::setLayoutWrap(PangoLayout *layout,
-                             int wrap)
+                               int wrap)
 {
     if (!layout) { return; }
     switch(wrap) {
@@ -374,15 +374,15 @@ void CommonText::setLayoutWrap(PangoLayout *layout,
 }
 
 void CommonText::setLayoutJustify(PangoLayout *layout,
-                                bool justify)
+                                  bool justify)
 {
     if (!layout) { return; }
     pango_layout_set_justify(layout, justify);
 }
 
 void CommonText::setLayoutMarkup(PangoLayout *layout,
-                               const std::string &str,
-                               double renderScale)
+                                 const std::string &str,
+                                 double renderScale)
 {
     if (!layout || str.empty()) { return; }
     std::string markup = str;
@@ -395,14 +395,14 @@ void CommonText::setLayoutMarkup(PangoLayout *layout,
 }
 
 void CommonText::setLayoutWidth(PangoLayout *layout,
-                              int width)
+                                int width)
 {
     if (!layout || width<=0) { return; }
     pango_layout_set_width(layout, width * PANGO_SCALE);
 }
 
 void CommonText::setFontHintStyleOption(cairo_font_options_t *options,
-                                      int hint)
+                                        int hint)
 {
     if (!options) { return; }
     switch(hint) {
@@ -425,7 +425,7 @@ void CommonText::setFontHintStyleOption(cairo_font_options_t *options,
 }
 
 void CommonText::setFontHintMetricsOption(cairo_font_options_t *options,
-                                       int metric)
+                                          int metric)
 {
     if (!options) { return; }
     switch(metric) {
@@ -442,7 +442,7 @@ void CommonText::setFontHintMetricsOption(cairo_font_options_t *options,
 }
 
 void CommonText::setFontAntialiasOption(cairo_font_options_t *options,
-                                      int antialias)
+                                        int antialias)
 {
     if (!options) { return; }
     switch(antialias) {
@@ -462,7 +462,7 @@ void CommonText::setFontAntialiasOption(cairo_font_options_t *options,
 }
 
 void CommonText::setFontSubpixelOption(cairo_font_options_t *options,
-                                     int subpixel)
+                                       int subpixel)
 {
     if (!options) { return; }
     switch(subpixel) {
@@ -485,7 +485,7 @@ void CommonText::setFontSubpixelOption(cairo_font_options_t *options,
 }
 
 void CommonText::setFontStretchDescription(PangoFontDescription *description,
-                                         int stretch)
+                                           int stretch)
 {
     if (!description) { return; }
     switch(stretch) {
@@ -520,7 +520,7 @@ void CommonText::setFontStretchDescription(PangoFontDescription *description,
 }
 
 void CommonText::setFontWeightDescription(PangoFontDescription *description,
-                                        int weight)
+                                          int weight)
 {
     if (!description) { return; }
     switch(weight) {
@@ -564,7 +564,7 @@ void CommonText::setFontWeightDescription(PangoFontDescription *description,
 }
 
 void CommonText::setupFontmap(FcConfig *fc,
-                            PangoFontMap *map)
+                              PangoFontMap *map)
 {
     if (!fc) { return; }
     if (!map) { map = pango_cairo_font_map_get_default(); }
@@ -576,16 +576,16 @@ void CommonText::setupFontmap(FcConfig *fc,
 }
 
 CommonText::CommonTextRenderResult CommonText::renderRichText(int width,
-                                                        int height,
-                                                        FcConfig *fc,
-                                                        const std::string &html,
-                                                        int wrap,
-                                                        int align,
-                                                        int justify,
-                                                        double rX,
-                                                        double rY,
-                                                        bool flip,
-                                                        bool noBuffer)
+                                                              int height,
+                                                              FcConfig *fc,
+                                                              const std::string &html,
+                                                              int wrap,
+                                                              int align,
+                                                              int justify,
+                                                              double rX,
+                                                              double rY,
+                                                              bool flip,
+                                                              bool noBuffer)
 {
     std::cout << "RICHT TEXT WIP RENDER " << width << " " << height << " " << rX << " " << rY <<std::endl;
 
@@ -678,22 +678,22 @@ CommonText::CommonTextRenderResult CommonText::renderRichText(int width,
 }
 
 CommonText::CommonTextRenderResult CommonText::renderText(int width,
-                                                    int height,
-                                                    FcConfig *fc,
-                                                    const std::string &txt,
-                                                    const std::string &font,
-                                                    CommonText::CommonTextStyle style,
-                                                    double x,
-                                                    double y,
-                                                    double scX,
-                                                    double scY,
-                                                    double skX,
-                                                    double skY,
-                                                    double rX,
-                                                    double rY,
-                                                    double rotate,
-                                                    bool flip,
-                                                    bool noBuffer)
+                                                          int height,
+                                                          FcConfig *fc,
+                                                          const std::string &txt,
+                                                          const std::string &font,
+                                                          CommonText::CommonTextStyle style,
+                                                          double x,
+                                                          double y,
+                                                          double scX,
+                                                          double scY,
+                                                          double skX,
+                                                          double skY,
+                                                          double rX,
+                                                          double rY,
+                                                          double rotate,
+                                                          bool flip,
+                                                          bool noBuffer)
 {
     CommonTextRenderResult result;
     result.success = false;
@@ -914,8 +914,8 @@ std::vector<CommonText::CommonTextSubtitle> CommonText::parseSRT(const std::stri
 }
 
 std::vector<std::string> CommonText::getFontFamilyList(FcConfig *fc,
-                                                     const std::string &extra,
-                                                     bool extraisDir)
+                                                       const std::string &extra,
+                                                       bool extraisDir)
 {
     bool noFC = false;
     if (!fc) { noFC = true; fc = FcInitLoadConfigAndFonts(); } // init fc

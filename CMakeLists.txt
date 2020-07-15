@@ -49,8 +49,6 @@ if(NOT EXISTS ${OPENFX_PATH}/include)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common/RichText)
 include_directories(${OPENFX_PATH}/include)
 include_directories(${OFX_SUPPORT_HEADER_DIR})
 include_directories(${OPENFX_PATH}/Support/Plugins/include)
@@ -78,10 +76,10 @@ FILE(GLOB SUPPORT_SOURCES
 file(GLOB SOURCES
     "Text.cpp"
     "Text.h"
-    "common/RichText/RichText.cpp"
-    "common/RichText/RichText.h"
-    "common/TextHosts.h"
-    "common/TextParams.h"
+    "CommonText.cpp"
+    "CommonText.h"
+    "TextHosts.h"
+    "TextParams.h"
 )
 file(GLOB RESOURCES "common/net.sf.openfx.Text.png")
 

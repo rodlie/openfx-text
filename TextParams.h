@@ -19,7 +19,7 @@
 #ifndef TEXT_PARAMS_H
 #define TEXT_PARAMS_H
 
-#include "RichText.h"
+#include "CommonText.h"
 
 #define kParamText "text"
 #define kParamTextLabel "Text"
@@ -60,27 +60,27 @@
 #define kParamWrap "wrap"
 #define kParamWrapLabel "Wrap"
 #define kParamWrapHint "Word wrap."
-#define kParamWrapDefault RichText::RichTextWrapWord
+#define kParamWrapDefault CommonText::CommonTextWrapWord
 
 #define kParamAlign "align"
 #define kParamAlignLabel "Horizontal align"
 #define kParamAlignHint "Horizontal text align."
-#define kParamAlignDefault RichText::RichTextAlignLeft
+#define kParamAlignDefault CommonText::CommonTextAlignLeft
 
 #define kParamVAlign "valign"
 #define kParamVAlignLabel "Vertical align"
 #define kParamVAlignHint "Vertical text align."
-#define kParamVAlignDefault RichText::RichTextAlignTop
+#define kParamVAlignDefault CommonText::CommonTextAlignTop
 
 #define kParamStretch "stretch"
 #define kParamStretchLabel "Stretch"
 #define kParamStretchHint "Width of the font relative to other designs within a family."
-#define kParamStretchDefault RichText::RichTextFontStretchNormal
+#define kParamStretchDefault CommonText::CommonTextFontStretchNormal
 
 #define kParamWeight "weight"
 #define kParamWeightLabel "Weight"
 #define kParamWeightHint "The weight field specifies how bold or light the font should be."
-#define kParamWeightDefault RichText::RichTextFontWeightNormal
+#define kParamWeightDefault CommonText::CommonTextFontWeightNormal
 
 #define kParamStrokeColor "strokeColor"
 #define kParamStrokeColorLabel "Stroke color"
@@ -99,7 +99,7 @@
 #define kParamHintMetrics "hintMetrics"
 #define kParamHintMetricsLabel "Hint metrics"
 #define kParamHintMetricsHint "This controls whether metrics are quantized to integer values in device units."
-#define kParamHintMetricsDefault RichText::RichTextHintDefault
+#define kParamHintMetricsDefault CommonText::CommonTextHintDefault
 
 #define kParamLetterSpace "letterSpace"
 #define kParamLetterSpaceLabel "Letter spacing"

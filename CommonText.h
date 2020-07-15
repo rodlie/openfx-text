@@ -244,44 +244,44 @@ public:
                              PangoFontMap *map);
 
     /** @brief render rich text to buffer */
-    static RichTextRenderResult renderRichText(int width,
-                                               int height,
-                                               FcConfig *fc,
-                                               const std::string &html,
-                                               int wrap,
-                                               int align,
-                                               int justify,
-                                               double rX,
-                                               double rY,
-                                               bool flip = false,
-                                               bool noBuffer = false);
+    static CommonTextRenderResult renderRichText(int width,
+                                                 int height,
+                                                 FcConfig *fc,
+                                                 const std::string &html,
+                                                 int wrap,
+                                                 int align,
+                                                 int justify,
+                                                 double rX,
+                                                 double rY,
+                                                 bool flip = false,
+                                                 bool noBuffer = false);
 
     /** @brief render text to buffer */
-    static RichTextRenderResult renderText(int width,
-                                           int height,
-                                           FcConfig *fc,
-                                           const std::string &txt,
-                                           const std::string &font,
-                                           CommonTextStyle style,
-                                           double x,
-                                           double y,
-                                           double scX,
-                                           double scY,
-                                           double skX,
-                                           double skY,
-                                           double rX,
-                                           double rY,
-                                           double rotate,
-                                           bool flip = false,
-                                           bool noBuffer = false);
+    static CommonTextRenderResult renderText(int width,
+                                             int height,
+                                             FcConfig *fc,
+                                             const std::string &txt,
+                                             const std::string &font,
+                                             CommonTextStyle style,
+                                             double x,
+                                             double y,
+                                             double scX,
+                                             double scY,
+                                             double skX,
+                                             double skY,
+                                             double rX,
+                                             double rY,
+                                             double rotate,
+                                             bool flip = false,
+                                             bool noBuffer = false);
 
     /** @brief parse SRT subtitle file */
     static std::vector<CommonTextSubtitle> parseSRT(const std::string &filename);
 
     /** @brief generate font family list */
     static std::vector<std::string> getFontFamilyList(FcConfig *fc,
-                                                    const std::string &extra = std::string(),
-                                                    bool extraisDir = false);
+                                                      const std::string &extra = std::string(),
+                                                      bool extraisDir = false);
 
     /** @brief read text from file */
     static std::string readTextFile(const std::string &txt);

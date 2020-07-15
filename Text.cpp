@@ -116,9 +116,9 @@ void TextOFXPlugin::render(const RenderArguments &args)
     int fontSize = 0;
     std::string text;
     std::string font;
-    RichText::RichTextStyle textStyle;
-    textStyle.aa = RichText::RichTextFontAntialiasGray;
-    textStyle.subpixel = RichText::RichTextFontSubpixelDefault;
+    CommonText::CommonTextStyle textStyle;
+    textStyle.aa = CommonText::CommonTextFontAntialiasGray;
+    textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
     _justify->getValueAtTime(args.time, textStyle.justify);
     _hintMetrics->getValueAtTime(args.time, textStyle.metrics);
     _hintStyle->getValueAtTime(args.time, textStyle.hint);
@@ -177,7 +177,7 @@ void TextOFXPlugin::render(const RenderArguments &args)
     int height = dstRod.y2-dstRod.y1;
 
     // render image
-    RichText::RichTextRenderResult result = RichText::renderText(width,
+    CommonText::CommonTextRenderResult result = CommonText::renderText(width,
                                                                  height,
                                                                  _fcConfig,
                                                                  text,
@@ -275,7 +275,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setLabel(kParamFontNameLabel);
         param->setHint(kParamFontNameHint);
 
-        std::vector<std::string> fonts = RichText::getFontFamilyList(nullptr);
+        std::vector<std::string> fonts = CommonText::getFontFamilyList(nullptr);
         // workaround for stupid Fusion!
         _fonts = fonts;
         //
