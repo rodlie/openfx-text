@@ -21,7 +21,6 @@
 
 #include "ofxsImageEffect.h"
 #include "CommonText.h"
-#include <iostream>
 
 #define OFX_HOST_NATRON "fr.inria.Natron"
 #define OFX_HOST_NUKE "uk.co.thefoundry.nuke"
@@ -30,6 +29,11 @@
 #define OFX_HOST_FUSION "com.blackmagicdesign.Fusion"
 #define OFX_HOST_VEGAS "com.sonycreativesoftware.vegas"
 #define OFX_HOST_CATALYST "com.sony.Catalyst.Edit"
+
+#define kParamCanvas "canvas"
+#define kParamCanvasLabel "Custom size"
+#define kParamCanvasHint "Set custom canvas size, default (0) is project format."
+#define kParamCanvasDefault 0
 
 #define kParamText "text"
 #define kParamTextLabel "Text"
@@ -129,6 +133,17 @@ public:
     virtual void render(const RenderArguments &args) override final;
     virtual void changedParam(const InstanceChangedArgs &args,
                               const std::string &paramName) override final;
+    virtual bool getRegionOfDefinition(const RegionOfDefinitionArguments &args,
+                                       OfxRectD &rod) override final;
+    CommonText::CommonTextRenderResult renderText(FcConfig *fc,
+                                                  const RenderArguments &args,
+                                                  int width,
+                                                  int height,
+                                                  bool getRoD = false);
+    CommonText::CommonTextRenderResult renderTextRoD(FcConfig *fc,
+                                                     const RegionOfDefinitionArguments &args,
+                                                     int width,
+                                                     int height);
 
 private:
     Clip *_dstClip;
@@ -149,6 +164,7 @@ private:
     ChoiceParam *_hintStyle;
     ChoiceParam *_hintMetrics;
     IntParam *_letterSpace;
+    Int2DParam *_canvas;
     ChoiceParam *_fontName;
     FcConfig* _fcConfig;
 };

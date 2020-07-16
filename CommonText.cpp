@@ -693,6 +693,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
                                                           double rY,
                                                           double rotate,
                                                           bool flip,
+                                                          bool getRoD,
                                                           bool noBuffer)
 {
     CommonTextRenderResult result;
@@ -721,19 +722,21 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     alist = pango_attr_list_new();
 
     // flip
-    if (flip) {
+    if (flip && !getRoD) {
         cairo_scale(cr, 1.0f, -1.0f);
         cairo_translate(cr, 0.0f, -height);
     }
 
     // set background
-    cairo_rectangle(cr, 0, 0, width, height);
-    cairo_set_source_rgba(cr,
-                          style.backgroundColor.r,
-                          style.backgroundColor.g,
-                          style.backgroundColor.b,
-                          style.backgroundColor.a);
-    cairo_fill(cr);
+    if (!getRoD) {
+        cairo_rectangle(cr, 0, 0, width, height);
+        cairo_set_source_rgba(cr,
+                              style.backgroundColor.r,
+                              style.backgroundColor.g,
+                              style.backgroundColor.b,
+                              style.backgroundColor.a);
+        cairo_fill(cr);
+    }
 
     // set font options
     CommonText::setFontHintStyleOption(options, style.hint);
@@ -755,27 +758,28 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     pango_font_description_free(desc);
 
     // set layout
-    CommonText::setLayoutWidth(layout, width);
-    CommonText::setLayoutWrap(layout, style.wrap);
-    CommonText::setLayoutAlign(layout, style.align);
-
-    if (style.valign != 0) {
-        int text_width, text_height;
-        pango_layout_get_pixel_size(layout, &text_width, &text_height);
-        switch (style.valign) {
-        case 1:
-            cairo_move_to(cr, 0, (height-text_height)/2);
-            break;
-        case 2:
-            cairo_move_to(cr, 0, height-text_height);
-            break;
+    if (!getRoD) {
+        //CommonText::setLayoutWidth(layout, width);
+        CommonText::setLayoutWrap(layout, style.wrap);
+        CommonText::setLayoutAlign(layout, style.align);
+        if (style.valign != 0) {
+            int text_width, text_height;
+            pango_layout_get_pixel_size(layout, &text_width, &text_height);
+            switch (style.valign) {
+            case 1:
+                cairo_move_to(cr, 0, (height-text_height)/2);
+                break;
+            case 2:
+                cairo_move_to(cr, 0, height-text_height);
+                break;
+            }
         }
+        CommonText::setLayoutJustify(layout, style.justify);
     }
 
-    CommonText::setLayoutJustify(layout, style.justify);
-
     if (style.letterSpace != 0) {
-        pango_attr_list_insert(alist,pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
+            pango_attr_list_insert(alist,
+                                   pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
     }
     pango_layout_set_attributes(layout,alist);
 
@@ -793,15 +797,14 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     }
 
     // set color
-    cairo_set_source_rgba(cr,
-                          style.textColor.r,
-                          style.textColor.g,
-                          style.textColor.b,
-                          style.textColor.a);
-    cairo_fill(cr);
-
-
-
+    if (!getRoD) {
+        cairo_set_source_rgba(cr,
+                              style.textColor.r,
+                              style.textColor.g,
+                              style.textColor.b,
+                              style.textColor.a);
+        cairo_fill(cr);
+    }
 
     // update layout
     pango_cairo_update_layout(cr, layout);
@@ -825,7 +828,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     result.sW = cairo_image_surface_get_width(surface);
     result.sH = cairo_image_surface_get_height(surface);
 
-    if (result.sW != width || result.sH != height) { // size differ!
+    if (result.sW != width || result.sH != height || getRoD) { // size differ! or we only want RoD
         noBuffer = true; // skip buffer
     }
 

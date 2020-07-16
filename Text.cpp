@@ -18,6 +18,8 @@
 
 #include "Text.h"
 
+#include <iostream>
+
 TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     : ImageEffect(handle)
     , _dstClip(nullptr)
@@ -38,6 +40,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _hintStyle(nullptr)
     , _hintMetrics(nullptr)
     , _letterSpace(nullptr)
+    , _canvas(nullptr)
     , _fontName(nullptr)
     , _fcConfig(nullptr)
 {
@@ -62,10 +65,11 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _hintStyle = fetchChoiceParam(kParamHintStyle);
     _hintMetrics = fetchChoiceParam(kParamHintMetrics);
     _letterSpace = fetchIntParam(kParamLetterSpace);
+    _canvas = fetchInt2DParam(kParamCanvas);
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
            && _justify && _align && _valign && _style && _stretch && _weight && _strokeColor
-           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace);
+           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas);
 
     _fcConfig = FcInitLoadConfigAndFonts();
 }
@@ -105,94 +109,25 @@ void TextOFXPlugin::render(const RenderArguments &args)
     // are we in the image bounds
     OfxRectI dstBounds = dstImg->getBounds();
     OfxRectI dstRod = dstImg->getRegionOfDefinition();
-    if(args.renderWindow.x1 < dstBounds.x1 || args.renderWindow.x1 >= dstBounds.x2 || args.renderWindow.y1 < dstBounds.y1 || args.renderWindow.y1 >= dstBounds.y2 ||
-            args.renderWindow.x2 <= dstBounds.x1 || args.renderWindow.x2 > dstBounds.x2 || args.renderWindow.y2 <= dstBounds.y1 || args.renderWindow.y2 > dstBounds.y2) {
+    if (args.renderWindow.x1 < dstBounds.x1 ||
+        args.renderWindow.x1 >= dstBounds.x2 ||
+        args.renderWindow.y1 < dstBounds.y1 ||
+        args.renderWindow.y1 >= dstBounds.y2 ||
+        args.renderWindow.x2 <= dstBounds.x1 ||
+        args.renderWindow.x2 > dstBounds.x2 ||
+        args.renderWindow.y2 <= dstBounds.y1 ||
+        args.renderWindow.y2 > dstBounds.y2)
+    {
         throwSuiteStatusException(kOfxStatErrValue);
         return;
     }
 
-    // get params
-    int style = 0;
-    int fontSize = 0;
-    std::string text;
-    std::string font;
-    CommonText::CommonTextStyle textStyle;
-    textStyle.aa = CommonText::CommonTextFontAntialiasGray;
-    textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
-    _justify->getValueAtTime(args.time, textStyle.justify);
-    _hintMetrics->getValueAtTime(args.time, textStyle.metrics);
-    _hintStyle->getValueAtTime(args.time, textStyle.hint);
-    _weight->getValueAtTime(args.time, textStyle.weight);
-    _stretch->getValueAtTime(args.time, textStyle.stretch);
-    _align->getValueAtTime(args.time, textStyle.align);
-    _wrap->getValueAtTime(args.time, textStyle.wrap);
-    _text->getValueAtTime(args.time, text);
-    _font->getValueAtTime(args.time, font);
-    _fontSize->getValueAtTime(args.time, fontSize);
-    _style->getValueAtTime(args.time, style);
-    _strokeWidth->getValueAtTime(args.time, textStyle.strokeWidth);
-    _valign->getValueAtTime(args.time, textStyle.valign);
-    _letterSpace->getValueAtTime(args.time, textStyle.letterSpace);
-    _textColor->getValueAtTime(args.time,
-                               textStyle.textColor.r,
-                               textStyle.textColor.g,
-                               textStyle.textColor.b,
-                               textStyle.textColor.a);
-    _bgColor->getValueAtTime(args.time,
-                             textStyle.backgroundColor.r,
-                             textStyle.backgroundColor.g,
-                             textStyle.backgroundColor.b,
-                             textStyle.backgroundColor.a);
-    _strokeColor->getValueAtTime(args.time,
-                                 textStyle.strokeColor.r,
-                                 textStyle.strokeColor.g,
-                                 textStyle.strokeColor.b,
-                                 textStyle.strokeColor.a);
-
-    // workaround for stupid Fusion!
-    /*int fontID = 0;
-    _fontName->getValueAtTime(args.time, fontID);
-    if (_fonts.size()>=fontID) {
-        font = _fonts.at(fontID);
-    }*/
-    //
-
-    if ( font.empty() ) { font = kParamFontNameDefault; }
-    std::ostringstream pangoFont;
-    pangoFont << font;
-    switch(style) {
-    case 0:
-        pangoFont << " " << "normal";
-        break;
-    case 1:
-        pangoFont << " " << "bold";
-        break;
-    case 2:
-        pangoFont << " " << "italic";
-        break;
-    }
-    pangoFont << " " << std::floor(fontSize * args.renderScale.x + 0.5);
-
+    // image size
     int width = dstRod.x2-dstRod.x1;
     int height = dstRod.y2-dstRod.y1;
 
     // render image
-    CommonText::CommonTextRenderResult result = CommonText::renderText(width,
-                                                                 height,
-                                                                 _fcConfig,
-                                                                 text,
-                                                                 pangoFont.str(),
-                                                                 textStyle,
-                                                                 0,
-                                                                 0,
-                                                                 1.0,
-                                                                 1.0,
-                                                                 0,
-                                                                 0,
-                                                                 args.renderScale.x,
-                                                                 args.renderScale.y,
-                                                                 0,
-                                                                 true /* flip */);
+    CommonText::CommonTextRenderResult result = renderText(_fcConfig, args, width, height);
     if ( !result.success || (result.sW != width || result.sH != height) ) {
         setPersistentMessage(Message::eMessageError, "", "Text Renderer failed");
         throwSuiteStatusException(kOfxStatErrFormat);
@@ -244,6 +179,131 @@ void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
     }
 }
 
+bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &args,
+                                          OfxRectD &rod)
+{
+    if (!kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.)) {
+        OFX::throwSuiteStatusException(kOfxStatFailed);
+        return false;
+    }
+
+    int width, height;
+    _canvas->getValue(width, height);
+
+    if (width == 0 || height == 0 ) { // no custom size, get RoD from layout
+        width = rod.x2-rod.x1;
+        height = rod.y2-rod.y1;
+        CommonText::CommonTextRenderResult result = renderTextRoD(_fcConfig, args, width, height);
+        if (result.success) {
+            width = result.pW;
+            height = result.pH;
+        }
+    }
+
+    if (width > 0 && height > 0) {
+        rod.x1 = rod.y1 = 0;
+        rod.x2 = width;
+        rod.y2 = height;
+    }
+    else { return false; }
+    return true;
+}
+
+CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
+                                                             const RenderArguments &args,
+                                                             int width,
+                                                             int height,
+                                                             bool getRoD)
+{
+    CommonText::CommonTextRenderResult result;
+    if (!fc) { return result; }
+
+    // get params
+    int style = 0;
+    int fontSize = 0;
+    std::string text;
+    std::string font;
+    CommonText::CommonTextStyle textStyle;
+    textStyle.aa = CommonText::CommonTextFontAntialiasGray;
+    textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
+    _justify->getValueAtTime(args.time, textStyle.justify);
+    _hintMetrics->getValueAtTime(args.time, textStyle.metrics);
+    _hintStyle->getValueAtTime(args.time, textStyle.hint);
+    _weight->getValueAtTime(args.time, textStyle.weight);
+    _stretch->getValueAtTime(args.time, textStyle.stretch);
+    _align->getValueAtTime(args.time, textStyle.align);
+    _wrap->getValueAtTime(args.time, textStyle.wrap);
+    _text->getValueAtTime(args.time, text);
+    _font->getValueAtTime(args.time, font);
+    _fontSize->getValueAtTime(args.time, fontSize);
+    _style->getValueAtTime(args.time, style);
+    _strokeWidth->getValueAtTime(args.time, textStyle.strokeWidth);
+    _valign->getValueAtTime(args.time, textStyle.valign);
+    _letterSpace->getValueAtTime(args.time, textStyle.letterSpace);
+    _textColor->getValueAtTime(args.time,
+                               textStyle.textColor.r,
+                               textStyle.textColor.g,
+                               textStyle.textColor.b,
+                               textStyle.textColor.a);
+    _bgColor->getValueAtTime(args.time,
+                             textStyle.backgroundColor.r,
+                             textStyle.backgroundColor.g,
+                             textStyle.backgroundColor.b,
+                             textStyle.backgroundColor.a);
+    _strokeColor->getValueAtTime(args.time,
+                                 textStyle.strokeColor.r,
+                                 textStyle.strokeColor.g,
+                                 textStyle.strokeColor.b,
+                                 textStyle.strokeColor.a);
+
+    if ( font.empty() ) { font = kParamFontNameDefault; }
+    std::ostringstream pangoFont;
+    pangoFont << font;
+    switch(style) {
+    case 0:
+        pangoFont << " " << "normal";
+        break;
+    case 1:
+        pangoFont << " " << "bold";
+        break;
+    case 2:
+        pangoFont << " " << "italic";
+        break;
+    }
+    pangoFont << " " << std::floor(fontSize * args.renderScale.x + 0.5);
+    result = CommonText::renderText(width,
+                                    height,
+                                    fc,
+                                    text,
+                                    pangoFont.str(),
+                                    textStyle,
+                                    0,
+                                    0,
+                                    1.0,
+                                    1.0,
+                                    0,
+                                    0,
+                                    args.renderScale.x,
+                                    args.renderScale.y,
+                                    0,
+                                    true /* flip */,
+                                    getRoD);
+    return  result;
+}
+
+CommonText::CommonTextRenderResult TextOFXPlugin::renderTextRoD(FcConfig *fc,
+                                                                const RegionOfDefinitionArguments &args,
+                                                                int width,
+                                                                int height)
+{
+    RenderArguments newargs;
+    newargs.renderScale = args.renderScale;
+    newargs.renderScale.x = 1.;
+    newargs.renderScale.y = 1.;
+    newargs.time = args.time;
+    return renderText(fc, newargs, width, height, true);
+}
+
 void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 {
     desc.setLabel(kPluginName);
@@ -271,6 +331,16 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
     // make some pages
     PageParamDescriptor *page = desc.definePageParam("Controls");
     {
+        Int2DParamDescriptor* param = desc.defineInt2DParam(kParamCanvas);
+        param->setLabel(kParamCanvasLabel);
+        param->setHint(kParamCanvasHint);
+        param->setRange(0, 0, 10000, 10000);
+        param->setDisplayRange(0, 0, 4000, 4000);
+        param->setDefault(kParamCanvasDefault, kParamCanvasDefault);
+        param->setAnimates(false);
+        if (page) { page->addChild(*param); }
+    }
+    {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamFontName);
         param->setLabel(kParamFontNameLabel);
         param->setHint(kParamFontNameHint);
@@ -281,12 +351,8 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         //
         for(int i = 0; i < _fonts.size(); ++i) { param->appendOption( fonts.at(i) ); }
         param->setAnimates(false);
-        if ( fonts.empty() ) {
-            param->appendOption("N/A");
-        }
-        if (page) {
-            page->addChild(*param);
-        }
+        if ( fonts.empty() ) { param->appendOption("N/A"); }
+        if (page) { page->addChild(*param); }
     }
     {
         StringParamDescriptor* param = desc.defineStringParam(kParamFont);
@@ -294,10 +360,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamFontHint);
         param->setStringType(eStringTypeSingleLine);
         param->setAnimates(false);
-
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         IntParamDescriptor* param = desc.defineIntParam(kParamFontSize);
@@ -307,9 +370,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDisplayRange(1, 500);
         param->setDefault(kParamFontSizeDefault);
         param->setAnimates(true);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         DoubleParamDescriptor* param = desc.defineDoubleParam(kParamStrokeWidth);
@@ -319,9 +380,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDisplayRange(0, 100);
         param->setDefault(kParamStrokeWidthDefault);
         param->setAnimates(true);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         IntParamDescriptor* param = desc.defineIntParam(kParamLetterSpace);
@@ -331,9 +390,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDisplayRange(0, 500);
         param->setDefault(kParamLetterSpaceDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         StringParamDescriptor* param = desc.defineStringParam(kParamText);
@@ -342,9 +399,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setStringType(eStringTypeMultiLine);
         param->setAnimates(true);
         param->setDefault("Enter text");
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamStyle);
@@ -355,9 +410,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Italic");
         param->setDefault(kParamStyleDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamWrap);
@@ -369,9 +422,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Word-Char");
         param->setDefault(kParamWrapDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamAlign);
@@ -382,9 +433,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Center");
         param->setDefault(kParamAlignDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamVAlign);
@@ -395,9 +444,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Bottom");
         param->setDefault(kParamVAlignDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         BooleanParamDescriptor *param = desc.defineBooleanParam(kParamJustify);
@@ -405,9 +452,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamJustifyHint);
         param->setDefault(kParamJustifyDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamHintStyle);
@@ -420,9 +465,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Full");
         param->setDefault(kParamHintStyleDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamHintMetrics);
@@ -433,9 +476,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("On");
         param->setDefault(kParamHintMetricsDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamWeight);
@@ -455,9 +496,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Ultra heavy");
         param->setDefault(kParamWeightDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamStretch);
@@ -474,9 +513,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->appendOption("Ultra expanded");
         param->setDefault(kParamStretchDefault);
         param->setAnimates(false);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         RGBAParamDescriptor* param = desc.defineRGBAParam(kParamTextColor);
@@ -484,9 +521,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamTextColorHint);
         param->setDefault(1., 1., 1., 1.);
         param->setAnimates(true);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         RGBAParamDescriptor* param = desc.defineRGBAParam(kParamStrokeColor);
@@ -494,9 +529,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamStrokeColorHint);
         param->setDefault(1., 0., 0., 1.);
         param->setAnimates(true);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
     {
         RGBAParamDescriptor* param = desc.defineRGBAParam(kParamBGColor);
@@ -504,9 +537,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamBGColorHint);
         param->setDefault(0., 0., 0., 0.);
         param->setAnimates(true);
-        if (page) {
-            page->addChild(*param);
-        }
+        if (page) { page->addChild(*param); }
     }
 }
 

@@ -273,6 +273,7 @@ public:
                                              double rY,
                                              double rotate,
                                              bool flip = false,
+                                             bool getRoD = false,
                                              bool noBuffer = false);
 
     /** @brief parse SRT subtitle file */
