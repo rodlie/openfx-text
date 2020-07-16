@@ -747,7 +747,19 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     pango_cairo_context_set_font_options(pango_layout_get_context(layout), options);
 
     // set text
-    pango_layout_set_text(layout, txt.c_str(), -1);
+    if (style.markup) {
+        GError *error = nullptr;
+        if ( pango_parse_markup(txt.c_str(), -1, 0, nullptr, nullptr, nullptr, &error) ) {
+            pango_layout_set_markup(layout, txt.c_str(), -1);
+        } else {
+            result.error = error->message;
+            style.markup = false; // fallback to plain text
+        }
+        if (error) { g_clear_error(&error); }
+    }
+    if (!style.markup) {
+        pango_layout_set_text(layout, txt.c_str(), -1);
+    }
 
     // set font desc
     PangoFontDescription *desc;
@@ -781,7 +793,9 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
             pango_attr_list_insert(alist,
                                    pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
     }
-    pango_layout_set_attributes(layout,alist);
+    if (!style.markup) {
+        pango_layout_set_attributes(layout,alist);
+    }
 
     // set stroke
     if (style.strokeWidth>0) {

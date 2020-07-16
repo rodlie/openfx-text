@@ -110,6 +110,9 @@ public:
         int sH; // cairo surface height
         int pW; // pango layout width
         int pH; // pango layout height
+        std::string info;
+        std::string warning;
+        std::string error;
     };
     struct CommonTextSubtitle
     {
@@ -126,6 +129,7 @@ public:
     };
     struct CommonTextStyle
     {
+        bool markup = false;
         int wrap;
         int align;
         int valign;

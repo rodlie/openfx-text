@@ -43,6 +43,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _canvas(nullptr)
     , _fontName(nullptr)
     , _fcConfig(nullptr)
+    , _markup(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
@@ -66,10 +67,11 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _hintMetrics = fetchChoiceParam(kParamHintMetrics);
     _letterSpace = fetchIntParam(kParamLetterSpace);
     _canvas = fetchInt2DParam(kParamCanvas);
+    _markup = fetchBooleanParam(kParamMarkup);
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
            && _justify && _align && _valign && _style && _stretch && _weight && _strokeColor
-           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas);
+           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup);
 
     _fcConfig = FcInitLoadConfigAndFonts();
 }
@@ -226,6 +228,7 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
     CommonText::CommonTextStyle textStyle;
     textStyle.aa = CommonText::CommonTextFontAntialiasGray;
     textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
+    _markup->getValueAtTime(args.time, textStyle.markup);
     _justify->getValueAtTime(args.time, textStyle.justify);
     _hintMetrics->getValueAtTime(args.time, textStyle.metrics);
     _hintStyle->getValueAtTime(args.time, textStyle.hint);
@@ -288,6 +291,9 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
                                     0,
                                     true /* flip */,
                                     getRoD);
+    if (!result.error.empty()) {
+        setPersistentMessage(Message::eMessageError, "", result.error);
+    }
     return  result;
 }
 
@@ -337,6 +343,14 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setRange(0, 0, 10000, 10000);
         param->setDisplayRange(0, 0, 4000, 4000);
         param->setDefault(kParamCanvasDefault, kParamCanvasDefault);
+        param->setAnimates(false);
+        if (page) { page->addChild(*param); }
+    }
+    {
+        BooleanParamDescriptor *param = desc.defineBooleanParam(kParamMarkup);
+        param->setLabel(kParamMarkupLabel);
+        param->setHint(kParamMarkupHint);
+        param->setDefault(kParamMarkupDefault);
         param->setAnimates(false);
         if (page) { page->addChild(*param); }
     }

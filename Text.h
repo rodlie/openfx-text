@@ -35,6 +35,11 @@
 #define kParamCanvasHint "Set custom canvas size, default (0) is project format."
 #define kParamCanvasDefault 0
 
+#define kParamMarkup "markup"
+#define kParamMarkupLabel "Markup"
+#define kParamMarkupHint "Pango Text Attribute Markup Language, https://developer.gnome.org/pango/stable/PangoMarkupFormat.html."
+#define kParamMarkupDefault false
+
 #define kParamText "text"
 #define kParamTextLabel "Text"
 #define kParamTextHint "The text that will be drawn."
@@ -167,6 +172,7 @@ private:
     Int2DParam *_canvas;
     ChoiceParam *_fontName;
     FcConfig* _fcConfig;
+    BooleanParam *_markup;
 };
 
 mDeclarePluginFactory(TextOFXPluginFactory, {}, {});
