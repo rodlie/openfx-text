@@ -771,7 +771,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
 
     // set layout
     if (!getRoD) {
-        //CommonText::setLayoutWidth(layout, width);
+        //CommonText::setLayoutWidth(layout, width); // breaks "auto size"
         CommonText::setLayoutWrap(layout, style.wrap);
         CommonText::setLayoutAlign(layout, style.align);
         if (style.valign != 0) {
@@ -793,7 +793,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
             pango_attr_list_insert(alist,
                                    pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
     }
-    if (!style.markup) {
+    if (!style.markup) { // Can not set attributes on markup
         pango_layout_set_attributes(layout,alist);
     }
 

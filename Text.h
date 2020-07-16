@@ -122,7 +122,7 @@
 
 #define kParamLetterSpace "letterSpace"
 #define kParamLetterSpaceLabel "Letter spacing"
-#define kParamLetterSpaceHint "Spacing between letters."
+#define kParamLetterSpaceHint "Spacing between letters. Will not work if markup is enabled."
 #define kParamLetterSpaceDefault 0
 
 using namespace OFX;
