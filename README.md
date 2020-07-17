@@ -29,6 +29,12 @@ On Ubuntu install the following packages:
 sudo apt install build-essential cmake pkg-config libfontconfig1-dev libcairo2-dev libpango1.0-dev libgl-dev
 ```
 
+On RHEL/CentOS/Fedora install the following packages:
+
+```
+sudo yum install gcc-g++ cmake3 pkg-config fontconfig-devel cairo-devel pango-devel mesa-libGL-devel
+```
+
 ### Build and install:
 
 ```
