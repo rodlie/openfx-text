@@ -20,6 +20,7 @@ project(Text VERSION 1.0.0 LANGUAGES CXX)
 add_definitions(-DkPluginVersionMajor=${PROJECT_VERSION_MAJOR} -DkPluginVersionMinor=${PROJECT_VERSION_MINOR})
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
+option(ENABLE_RICH_TEXT "Enable Rich Text Editor" ON)
 
 # Require OpenGL
 if(POLICY CMP0072)
@@ -37,6 +38,12 @@ pkg_search_module(PANGO REQUIRED pangocairo)
 
 # find git (if needed later)
 find_package(Git QUIET)
+
+# find qt (for rich text editor)
+if(${ENABLE_RICH_TEXT})
+    set(CMAKE_AUTOMOC ON)
+    find_package(Qt5 REQUIRED Core Gui Widgets)
+endif()
 
 set (CMAKE_CXX_STANDARD 11)
 set(OPENFX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/OpenFX")
@@ -102,6 +109,9 @@ configure_file(
     @ONLY
 )
 
+if(${ENABLE_RICH_TEXT})
+    add_executable(RichText RichTextEditor.cpp RichTextWidget.cpp RichTextWidget.h)
+endif()
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".ofx")
@@ -137,6 +147,9 @@ target_link_libraries(
     ${FONTCONFIG_LDFLAGS}
     ${PANGO_LDFLAGS}
 )
+if(${ENABLE_RICH_TEXT})
+    target_link_libraries(RichText Qt5::Core Qt5::Gui Qt5::Widgets)
+endif()
 
 # Find and set the arch name.
 # http://openeffects.org/documentation/reference/ch02s02.html
