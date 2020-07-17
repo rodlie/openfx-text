@@ -46,6 +46,8 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _markup(nullptr)
     , _range(nullptr)
     , _auto(nullptr)
+    , _arcRadius(nullptr)
+    , _arcAngle(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
@@ -71,6 +73,8 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _canvas = fetchInt2DParam(kParamCanvas);
     _markup = fetchBooleanParam(kParamMarkup);
     _auto = fetchBooleanParam(kParamAutoSize);
+    _arcRadius = fetchDoubleParam(kParamArcRadius);
+    _arcAngle = fetchDoubleParam(kParamArcAngle);
 
     if (getContext() == eContextGeneral) {
             _range   = fetchInt2DParam(kParamGeneratorRange);
@@ -78,7 +82,8 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
            && _justify && _align && _valign && _style && _stretch && _weight && _strokeColor
-           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup && _auto);
+           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup
+           && _auto && _arcRadius && _arcAngle);
 
     _fcConfig = FcInitLoadConfigAndFonts();
 }
@@ -229,6 +234,23 @@ bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &arg
     return true;
 }
 
+bool TextOFXPlugin::getTimeDomain(OfxRangeD &range)
+{
+    if (getContext() == eContextGeneral) {
+        assert(_range);
+        // how many frames on the input clip
+        //OfxRangeD srcRange = _srcClip->getFrameRange();
+
+        int min, max;
+        _range->getValue(min, max);
+        range.min = min;
+        range.max = max;
+
+        return true;
+    }
+    return false;
+}
+
 CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
                                                              const RenderArguments &args,
                                                              int width,
@@ -246,6 +268,8 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
     CommonText::CommonTextStyle textStyle;
     textStyle.aa = CommonText::CommonTextFontAntialiasGray;
     textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
+    _arcRadius->getValueAtTime(args.time, textStyle.arcRadius);
+    _arcAngle->getValueAtTime(args.time, textStyle.arcAngle);
     _auto->getValueAtTime(args.time, textStyle.autoSize);
     _markup->getValueAtTime(args.time, textStyle.markup);
     _justify->getValueAtTime(args.time, textStyle.justify);
@@ -396,6 +420,15 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         if (page) { page->addChild(*param); }
     }
     {
+        StringParamDescriptor* param = desc.defineStringParam(kParamText);
+        param->setLabel(kParamTextLabel);
+        param->setHint(kParamTextHint);
+        param->setStringType(eStringTypeMultiLine);
+        param->setAnimates(true);
+        param->setDefault("Enter text");
+        if (page) { page->addChild(*param); }
+    }
+    {
         ChoiceParamDescriptor *param = desc.defineChoiceParam(kParamFontName);
         param->setLabel(kParamFontNameLabel);
         param->setHint(kParamFontNameHint);
@@ -448,12 +481,23 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         if (page) { page->addChild(*param); }
     }
     {
-        StringParamDescriptor* param = desc.defineStringParam(kParamText);
-        param->setLabel(kParamTextLabel);
-        param->setHint(kParamTextHint);
-        param->setStringType(eStringTypeMultiLine);
+        DoubleParamDescriptor* param = desc.defineDoubleParam(kParamArcRadius);
+        param->setLabel(kParamArcRadiusLabel);
+        param->setHint(kParamArcRadiusHint);
+        param->setRange(0, 10000);
+        param->setDisplayRange(0, 1000);
+        param->setDefault(kParamArcRadiusDefault);
         param->setAnimates(true);
-        param->setDefault("Enter text");
+        if (page) { page->addChild(*param); }
+    }
+    {
+        DoubleParamDescriptor* param = desc.defineDoubleParam(kParamArcAngle);
+        param->setLabel(kParamArcAngleLabel);
+        param->setHint(kParamArcAngleHint);
+        param->setRange(0, 360);
+        param->setDisplayRange(0, 360);
+        param->setDefault(kParamArcAngleDefault);
+        param->setAnimates(true);
         if (page) { page->addChild(*param); }
     }
     {

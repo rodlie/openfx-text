@@ -17,6 +17,7 @@
 */
 
 #include "CommonText.h"
+#include "TextFX.h"
 
 #include <iostream>
 #include <sstream>
@@ -715,6 +716,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     CommonText::setupFontmap(fc, map);
 
     // setup surface and layout
+    bool updateLayout = true;
     cairo_t *cr;
     cairo_status_t status;
     cairo_surface_t *surface;
@@ -734,7 +736,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     }
 
     // set background
-    if (!getRoD) {
+    //if (!getRoD && style.arcAngle <= 0) {
         cairo_rectangle(cr, 0, 0, width, height);
         cairo_set_source_rgba(cr,
                               style.backgroundColor.r,
@@ -742,7 +744,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
                               style.backgroundColor.b,
                               style.backgroundColor.a);
         cairo_fill(cr);
-    }
+    //}
 
     // set font options
     CommonText::setFontHintStyleOption(options, style.hint);
@@ -776,7 +778,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     pango_font_description_free(desc);
 
     // set layout
-    if (!getRoD && !style.autoSize) {
+    if (!getRoD && !style.autoSize && style.arcAngle == 0) {
         if (width > 0) {
             CommonText::setLayoutWidth(layout, width);
         }
@@ -797,7 +799,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     }
 
     // set stroke
-    if (style.strokeWidth > 0) {
+    if (!getRoD && style.strokeWidth > 0 && style.arcAngle == 0) {
         cairo_new_path(cr);
         pango_cairo_layout_path(cr, layout);
         cairo_set_line_width( cr, std::floor(style.strokeWidth * rX + 0.5) );
@@ -807,10 +809,16 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
                               style.strokeColor.b,
                               style.strokeColor.a);
         cairo_stroke_preserve(cr);
+        /*cairo_set_source_rgba(cr,
+                              style.textColor.r,
+                              style.textColor.g,
+                              style.textColor.b,
+                              style.textColor.a);
+        cairo_fill(cr);*/
     }
 
     // set color
-    if (!getRoD) {
+    if (!getRoD && style.arcAngle == 0 /*&& style.strokeWidth == 0*/) {
         cairo_set_source_rgba(cr,
                               style.textColor.r,
                               style.textColor.g,
@@ -820,7 +828,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
     }
 
     // valign
-    if ( !getRoD && style.valign != 0 && (width > 0 && height > 0) ) {
+    if ( !getRoD && style.arcAngle == 0 && style.valign != 0 && (width > 0 && height > 0) ) {
         int text_width, text_height;
         pango_layout_get_pixel_size(layout, &text_width, &text_height);
         if (text_width > 0 && text_height > 0) {
@@ -835,9 +843,36 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
         }
     }
 
+    // Arc
+    if (style.arcAngle > 0 && width > 0 && height > 0) {
+        double arcX = width/2.0;
+        double arcY = height/2.0;
+        /*if (move) {
+            arcX = x;
+            arcY = y;
+        }*/
+        cairo_arc(cr, arcX, arcY, std::floor(style.arcRadius * rX + 0.5), 0.0, style.arcAngle * (M_PI/180.0));
+        cairo_path_t *path;
+        cairo_save(cr);
+        path = cairo_copy_path_flat(cr);
+        cairo_new_path(cr);
+        pango_cairo_layout_line_path(cr, pango_layout_get_line_readonly(layout, 0)); // TODO if more than one line add support for that
+        map_path_onto(cr, path);
+        cairo_path_destroy(path);
+        cairo_set_source_rgba(cr,
+                              style.textColor.r,
+                              style.textColor.g,
+                              style.textColor.b,
+                              style.textColor.a);
+        cairo_fill(cr);
+        updateLayout = false;
+    }
+
     // update layout
-    pango_cairo_update_layout(cr, layout);
-    pango_cairo_show_layout(cr, layout);
+    if (updateLayout) {
+        pango_cairo_update_layout(cr, layout);
+        pango_cairo_show_layout(cr, layout);
+    }
 
     // add pango layout width/height
     result.pW = -1;

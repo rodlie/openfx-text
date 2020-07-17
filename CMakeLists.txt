@@ -79,6 +79,7 @@ FILE(GLOB SUPPORT_SOURCES
 file(GLOB SOURCES
     "Text.cpp"
     "Text.h"
+    "TextFX.h"
     "CommonText.cpp"
     "CommonText.h"
     "CommonOFX.h"

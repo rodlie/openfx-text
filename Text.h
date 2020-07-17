@@ -56,12 +56,12 @@
 
 #define kParamFontName "name"
 #define kParamFontNameLabel "Select Font"
-#define kParamFontNameHint "The name of the font to be used."
+#define kParamFontNameHint "Select the font to be used."
 #define kParamFontNameDefault "Sans"
 
 #define kParamFont "font"
-#define kParamFontLabel "Font"
-#define kParamFontHint "Selected font."
+#define kParamFontLabel "Font family"
+#define kParamFontHint "Selected font family."
 
 #define kParamStyle "style"
 #define kParamStyleLabel "Style"
@@ -130,6 +130,16 @@
 #define kParamLetterSpaceHint "Spacing between letters. Will not work if markup is enabled."
 #define kParamLetterSpaceDefault 0
 
+#define kParamArcRadius "arcRadius"
+#define kParamArcRadiusLabel "Arc radius"
+#define kParamArcRadiusHint "Arc path radius (size of the path)."
+#define kParamArcRadiusDefault 100.0
+
+#define kParamArcAngle "arcAngle"
+#define kParamArcAngleLabel "Arc angle"
+#define kParamArcAngleHint "Arc Angle, set to 360 for a full circle."
+#define kParamArcAngleDefault 0
+
 #define kParamGeneratorRange "frameRange"
 #define kParamGeneratorRangeLabel "Frame Range"
 #define kParamGeneratorRangeHint "Time domain."
@@ -152,6 +162,7 @@ public:
                               const std::string &paramName) override final;
     virtual bool getRegionOfDefinition(const RegionOfDefinitionArguments &args,
                                        OfxRectD &rod) override final;
+    virtual bool getTimeDomain(OfxRangeD &range) override final;
     CommonText::CommonTextRenderResult renderText(FcConfig *fc,
                                                   const RenderArguments &args,
                                                   int width,
@@ -186,7 +197,9 @@ private:
     FcConfig* _fcConfig;
     BooleanParam *_markup;
     Int2DParam  *_range;
-    OFX::BooleanParam *_auto;
+    BooleanParam *_auto;
+    DoubleParam *_arcRadius;
+    DoubleParam *_arcAngle;
 };
 
 mDeclarePluginFactory(TextOFXPluginFactory, {}, {});

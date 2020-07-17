@@ -143,6 +143,8 @@ public:
         int subpixel;
         int letterSpace;
         double strokeWidth;
+        double arcRadius;
+        double arcAngle;
         std::string fontFamily;
         CommonTextColor textColor;
         CommonTextColor strokeColor;
