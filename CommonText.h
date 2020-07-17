@@ -130,6 +130,7 @@ public:
     struct CommonTextStyle
     {
         bool markup = false;
+        bool autoSize = false;
         int wrap;
         int align;
         int valign;
@@ -219,6 +220,10 @@ public:
     /** @brief set pango layout width */
     static void setLayoutWidth(PangoLayout *layout,
                                int width);
+
+    /** @brief set pango layout height */
+    static void setLayoutHeight(PangoLayout *layout,
+                                int height);
 
     /** @brief set font hint style */
     static void setFontHintStyleOption(cairo_font_options_t *options,

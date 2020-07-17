@@ -22,6 +22,13 @@ public:
         { return true; }
         return false;
     }
+    static bool isResolve(const std::string host)
+    {
+        if (host == OFX_HOST_RESOLVE ||
+            host == OFX_HOST_RESOLVE_LITE)
+        { return true; }
+        return false;
+    }
     static bool isNuke(const std::string host)
     {
         if (host == OFX_HOST_NUKE) { return true; }

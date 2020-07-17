@@ -35,6 +35,11 @@
 #define kParamCanvasHint "Set custom canvas size, default (0) is project format."
 #define kParamCanvasDefault 0
 
+#define kParamAutoSize "autoSize"
+#define kParamAutoSizeLabel "Auto size"
+#define kParamAutoSizeHint "Set canvas sized based on text. This will disable several other features."
+#define kParamAutoSizeDefault false
+
 #define kParamMarkup "markup"
 #define kParamMarkupLabel "Markup"
 #define kParamMarkupHint "Pango Text Attribute Markup Language, https://developer.gnome.org/pango/stable/PangoMarkupFormat.html."
@@ -181,6 +186,7 @@ private:
     FcConfig* _fcConfig;
     BooleanParam *_markup;
     Int2DParam  *_range;
+    OFX::BooleanParam *_auto;
 };
 
 mDeclarePluginFactory(TextOFXPluginFactory, {}, {});

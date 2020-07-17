@@ -45,6 +45,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _fcConfig(nullptr)
     , _markup(nullptr)
     , _range(nullptr)
+    , _auto(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
@@ -69,6 +70,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _letterSpace = fetchIntParam(kParamLetterSpace);
     _canvas = fetchInt2DParam(kParamCanvas);
     _markup = fetchBooleanParam(kParamMarkup);
+    _auto = fetchBooleanParam(kParamAutoSize);
 
     if (getContext() == eContextGeneral) {
             _range   = fetchInt2DParam(kParamGeneratorRange);
@@ -76,7 +78,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
            && _justify && _align && _valign && _style && _stretch && _weight && _strokeColor
-           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup);
+           && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup && _auto);
 
     _fcConfig = FcInitLoadConfigAndFonts();
 }
@@ -194,15 +196,17 @@ bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &arg
         return false;
     }
 
+    bool autoSize = false;
     int width, height;
     _canvas->getValue(width, height);
+    _auto->getValue(autoSize);
     if ( !CommonOFX::hostSupportsRoD(ofxHostName) ) { // host does not support custom size
         width = 0;
         height = 0;
     }
 
     if ( (width == 0 || height == 0) &&
-         CommonOFX::hostSupportsRoD(ofxHostName) )
+         CommonOFX::hostSupportsRoD(ofxHostName)  && autoSize)
     { // no custom size, get RoD from layout
         width = rod.x2-rod.x1;
         height = rod.y2-rod.y1;
@@ -242,6 +246,7 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
     CommonText::CommonTextStyle textStyle;
     textStyle.aa = CommonText::CommonTextFontAntialiasGray;
     textStyle.subpixel = CommonText::CommonTextFontSubpixelDefault;
+    _auto->getValueAtTime(args.time, textStyle.autoSize);
     _markup->getValueAtTime(args.time, textStyle.markup);
     _justify->getValueAtTime(args.time, textStyle.justify);
     _hintMetrics->getValueAtTime(args.time, textStyle.metrics);
@@ -334,7 +339,7 @@ void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 
     if (gHostIsNatron) { desc.setLabel(kPluginNameNatron); }
     else { desc.setLabel(kPluginName); }
-    if (CommonOFX::isFusion(ofxHostName)) { desc.setPluginGrouping("Generators"); }
+    if (CommonOFX::isFusion(ofxHostName)) { desc.setPluginGrouping("Generator"); } // Creator
     else { desc.setPluginGrouping(kPluginGrouping); }
     desc.setPluginDescription(kPluginDescription);
     desc.addSupportedContext(eContextGeneral);
@@ -372,6 +377,14 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDefault(kParamCanvasDefault, kParamCanvasDefault);
         param->setAnimates(false);
         param->setIsSecret(!CommonOFX::hostSupportsRoD(ofxHostName));
+        if (page) { page->addChild(*param); }
+    }
+    {
+        BooleanParamDescriptor *param = desc.defineBooleanParam(kParamAutoSize);
+        param->setLabel(kParamAutoSizeLabel);
+        param->setHint(kParamAutoSizeHint);
+        param->setAnimates(false);
+        param->setDefault(kParamAutoSizeDefault);
         if (page) { page->addChild(*param); }
     }
     {

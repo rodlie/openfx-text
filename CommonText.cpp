@@ -401,6 +401,13 @@ void CommonText::setLayoutWidth(PangoLayout *layout,
     pango_layout_set_width(layout, width * PANGO_SCALE);
 }
 
+void CommonText::setLayoutHeight(PangoLayout *layout,
+                                 int height)
+{
+    if (!layout || height <= 0) { return; }
+    pango_layout_set_height(layout, height * PANGO_SCALE);
+}
+
 void CommonText::setFontHintStyleOption(cairo_font_options_t *options,
                                         int hint)
 {
@@ -762,45 +769,38 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
 
     // set font desc
     PangoFontDescription *desc;
-    desc = pango_font_description_from_string(style.fontFamily.c_str());
+    desc = pango_font_description_from_string( style.fontFamily.c_str() );
     CommonText::setFontWeightDescription(desc, style.weight);
     CommonText::setFontStretchDescription(desc, style.stretch);
     pango_layout_set_font_description(layout, desc);
     pango_font_description_free(desc);
 
     // set layout
-    if (!getRoD) {
-        //CommonText::setLayoutWidth(layout, width); // breaks "auto size"
+    if (!getRoD && !style.autoSize) {
+        if (width > 0) {
+            CommonText::setLayoutWidth(layout, width);
+        }
+        /*if (height > 0) {
+            CommonText::setLayoutHeight(layout, height);
+        }*/
         CommonText::setLayoutWrap(layout, style.wrap);
         CommonText::setLayoutAlign(layout, style.align);
-        if (style.valign != 0) {
-            int text_width, text_height;
-            pango_layout_get_pixel_size(layout, &text_width, &text_height);
-            switch (style.valign) {
-            case 1:
-                cairo_move_to(cr, 0, (height-text_height)/2);
-                break;
-            case 2:
-                cairo_move_to(cr, 0, height-text_height);
-                break;
-            }
-        }
         CommonText::setLayoutJustify(layout, style.justify);
     }
 
     if (style.letterSpace != 0) {
             pango_attr_list_insert(alist,
-                                   pango_attr_letter_spacing_new(std::floor((style.letterSpace*PANGO_SCALE) * rX + 0.5)));
+                                   pango_attr_letter_spacing_new( std::floor( (style.letterSpace * PANGO_SCALE) * rX + 0.5 ) ) );
     }
     if (!style.markup) { // Can not set attributes on markup
-        pango_layout_set_attributes(layout,alist);
+        pango_layout_set_attributes(layout, alist);
     }
 
     // set stroke
-    if (style.strokeWidth>0) {
+    if (style.strokeWidth > 0) {
         cairo_new_path(cr);
         pango_cairo_layout_path(cr, layout);
-        cairo_set_line_width(cr, std::floor(style.strokeWidth * rX + 0.5));
+        cairo_set_line_width( cr, std::floor(style.strokeWidth * rX + 0.5) );
         cairo_set_source_rgba(cr,
                               style.strokeColor.r,
                               style.strokeColor.g,
@@ -817,6 +817,22 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
                               style.textColor.b,
                               style.textColor.a);
         cairo_fill(cr);
+    }
+
+    // valign
+    if ( !getRoD && style.valign != 0 && (width > 0 && height > 0) ) {
+        int text_width, text_height;
+        pango_layout_get_pixel_size(layout, &text_width, &text_height);
+        if (text_width > 0 && text_height > 0) {
+            switch (style.valign) {
+            case 1:
+                cairo_move_to(cr, 0, (height - text_height) / 2);
+                break;
+            case 2:
+                cairo_move_to(cr, 0, height - text_height);
+                break;
+            }
+        }
     }
 
     // update layout
