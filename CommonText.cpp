@@ -681,7 +681,6 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
                                                           int height,
                                                           FcConfig *fc,
                                                           const std::string &txt,
-                                                          const std::string &font,
                                                           CommonText::CommonTextStyle style,
                                                           double x,
                                                           double y,
@@ -763,7 +762,7 @@ CommonText::CommonTextRenderResult CommonText::renderText(int width,
 
     // set font desc
     PangoFontDescription *desc;
-    desc = pango_font_description_from_string(font.c_str());
+    desc = pango_font_description_from_string(style.fontFamily.c_str());
     CommonText::setFontWeightDescription(desc, style.weight);
     CommonText::setFontStretchDescription(desc, style.stretch);
     pango_layout_set_font_description(layout, desc);

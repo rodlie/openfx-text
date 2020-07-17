@@ -274,11 +274,11 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
         break;
     }
     pangoFont << " " << std::floor(fontSize * args.renderScale.x + 0.5);
+    textStyle.fontFamily = pangoFont.str();
     result = CommonText::renderText(width,
                                     height,
                                     fc,
                                     text,
-                                    pangoFont.str(),
                                     textStyle,
                                     0,
                                     0,

@@ -142,6 +142,7 @@ public:
         int subpixel;
         int letterSpace;
         double strokeWidth;
+        std::string fontFamily;
         CommonTextColor textColor;
         CommonTextColor strokeColor;
         CommonTextColor backgroundColor;
@@ -265,7 +266,6 @@ public:
                                              int height,
                                              FcConfig *fc,
                                              const std::string &txt,
-                                             const std::string &font,
                                              CommonTextStyle style,
                                              double x,
                                              double y,
