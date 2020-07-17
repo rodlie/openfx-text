@@ -13,6 +13,7 @@ before_install:
 
 install:
   - sudo apt-get install cmake pkg-config libfontconfig1-dev libcairo2-dev libpango1.0-dev libgl-dev tree
+  - sudo apt-get install qt5-default qtbase5-dev
 
 script:
   - mkdir build && cd build
