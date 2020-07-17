@@ -294,6 +294,9 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderText(FcConfig *fc,
     if (!result.error.empty()) {
         setPersistentMessage(Message::eMessageError, "", result.error);
     }
+    if (!result.warning.empty()) {
+        setPersistentMessage(Message::eMessageWarning, "", result.warning);
+    }
     return  result;
 }
 

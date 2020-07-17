@@ -30,6 +30,12 @@
 #define OFX_HOST_VEGAS "com.sonycreativesoftware.vegas"
 #define OFX_HOST_CATALYST "com.sony.Catalyst.Edit"
 
+#define kPluginName "TextFX"
+#define kPluginGrouping "Draw"
+#define kPluginIdentifier "net.sf.openfx.Text"
+#define kPluginDescription "Advanced internationalized OpenFX text generator. See https://github.com/rodlie/openfx-text for more information."
+#define kSupportsRenderScale 1
+
 #define kParamCanvas "canvas"
 #define kParamCanvasLabel "Custom size"
 #define kParamCanvasHint "Set custom canvas size, default (0) is project format."

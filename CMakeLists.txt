@@ -15,11 +15,9 @@
 ########################################################################
 
 cmake_minimum_required(VERSION 3.1)
-project(Text CXX)
+project(Text VERSION 1.0.0 LANGUAGES CXX)
 
-add_definitions(-DkPluginVersionMajor=1 -DkPluginVersionMinor=0 -DkSupportsRenderScale=1)
-add_definitions(-DkPluginName="TextFX" -DkPluginGrouping="Draw" -DkPluginIdentifier="net.sf.openfx.Text")
-add_definitions(-DkPluginDescription="Advanced internationalized OpenFX text generator. See https://github.com/rodlie/openfx-text for more information.")
+add_definitions(-DkPluginVersionMajor=${PROJECT_VERSION_MAJOR} -DkPluginVersionMinor=${PROJECT_VERSION_MINOR})
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
 
@@ -37,15 +35,22 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(FONTCONFIG REQUIRED fontconfig)
 pkg_search_module(PANGO REQUIRED pangocairo)
 
+# find git (if needed later)
+find_package(Git QUIET)
+
 set (CMAKE_CXX_STANDARD 11)
 set(OPENFX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/OpenFX")
 set(OFX_SUPPORT_HEADER_DIR "${OPENFX_PATH}/Support/include")
 set(OFX_SUPPORT_LIBRARY_DIR "${OPENFX_PATH}/Support/Library")
 
 if(NOT EXISTS ${OPENFX_PATH}/include)
-  message(FATAL_ERROR
-    "\n OpenFX is missing, please update your repository:\n"
-    "  > git submodule update -i\n")
+    if(${GIT_FOUND})
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init
+                                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                                RESULT_VARIABLE GIT_SUBMOD_RESULT)
+    else()
+        message(FATAL_ERROR "\nOpenFX is missing!\n")
+    endif()
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -64,9 +69,7 @@ FILE(GLOB SUPPORT_SOURCES
     "${OFX_SUPPORT_HEADER_DIR}/*.h"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsCore.cpp"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsImageEffect.cpp"
-    "${OFX_SUPPORT_LIBRARY_DIR}/ofxsInteract.cpp"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsLog.cpp"
-    "${OFX_SUPPORT_LIBRARY_DIR}/ofxsMultiThread.cpp"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsParams.cpp"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsProperty.cpp"
     "${OFX_SUPPORT_LIBRARY_DIR}/ofxsPropertyValidation.cpp"
@@ -181,22 +184,22 @@ endif()
 
 set(OFX_ARCH_NAME ${OFX_ARCH} CACHE STRING "OpenFX target OS and architecture")
 if("${OFX_ARCH_NAME}" EQUAL "UNKNOWN")
-  message(SEND_ERROR "OFX_ARCH_NAME was not detected. Install targets will be unavailable. See http://openeffects.org/documentation/reference/ch02s02.html to pick an arch name.")
+    message(SEND_ERROR "OFX_ARCH_NAME was not detected. Install targets will be unavailable. See http://openeffects.org/documentation/reference/ch02s02.html to pick an arch name.")
 else()
-  install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
-    LIBRARY DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
-  )
-  install(FILES ${RESOURCES}
-    DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources
-  )
-  install(FILES Info.plist
-    DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents
-  )
-  if(${BUNDLE_FONTS_CONF})
-    install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
-        DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources/fonts
+    install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        LIBRARY DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
     )
-  endif()
+    install(FILES ${RESOURCES} LICENSE README.md
+        DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources
+    )
+    install(FILES Info.plist
+        DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents
+    )
+    if(${BUNDLE_FONTS_CONF})
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
+            DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources/fonts
+        )
+    endif()
 endif()
