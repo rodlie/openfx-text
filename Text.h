@@ -21,16 +21,10 @@
 
 #include "ofxsImageEffect.h"
 #include "CommonText.h"
+#include "CommonOFX.h"
 
-#define OFX_HOST_NATRON "fr.inria.Natron"
-#define OFX_HOST_NUKE "uk.co.thefoundry.nuke"
-#define OFX_HOST_RESOLVE "DaVinciResolve"
-#define OFX_HOST_RESOLVE_LITE "DaVinciResolveLite"
-#define OFX_HOST_FUSION "com.blackmagicdesign.Fusion"
-#define OFX_HOST_VEGAS "com.sonycreativesoftware.vegas"
-#define OFX_HOST_CATALYST "com.sony.Catalyst.Edit"
-
-#define kPluginName "TextFX"
+#define kPluginName "TextOFX"
+#define kPluginNameNatron "TextFX"
 #define kPluginGrouping "Draw"
 #define kPluginIdentifier "net.sf.openfx.Text"
 #define kPluginDescription "Advanced internationalized OpenFX text generator. See https://github.com/rodlie/openfx-text for more information."
@@ -131,11 +125,18 @@
 #define kParamLetterSpaceHint "Spacing between letters. Will not work if markup is enabled."
 #define kParamLetterSpaceDefault 0
 
+#define kParamGeneratorRange "frameRange"
+#define kParamGeneratorRangeLabel "Frame Range"
+#define kParamGeneratorRangeHint "Time domain."
+
 using namespace OFX;
 
 // workaround for stupid Fusion!
 static std::vector<std::string> _fonts;
 //
+static std::string ofxPath;
+static bool gHostIsNatron = false;
+static std::string ofxHostName;
 
 class TextOFXPlugin : public ImageEffect
 {
@@ -179,6 +180,7 @@ private:
     ChoiceParam *_fontName;
     FcConfig* _fcConfig;
     BooleanParam *_markup;
+    Int2DParam  *_range;
 };
 
 mDeclarePluginFactory(TextOFXPluginFactory, {}, {});

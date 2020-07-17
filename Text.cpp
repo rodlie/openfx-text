@@ -44,6 +44,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _fontName(nullptr)
     , _fcConfig(nullptr)
     , _markup(nullptr)
+    , _range(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
@@ -68,6 +69,10 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _letterSpace = fetchIntParam(kParamLetterSpace);
     _canvas = fetchInt2DParam(kParamCanvas);
     _markup = fetchBooleanParam(kParamMarkup);
+
+    if (getContext() == eContextGeneral) {
+            _range   = fetchInt2DParam(kParamGeneratorRange);
+    }
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
            && _justify && _align && _valign && _style && _stretch && _weight && _strokeColor
@@ -191,11 +196,20 @@ bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &arg
 
     int width, height;
     _canvas->getValue(width, height);
+    if ( !CommonOFX::hostSupportsRoD(ofxHostName) ) { // host does not support custom size
+        width = 0;
+        height = 0;
+    }
 
-    if (width == 0 || height == 0 ) { // no custom size, get RoD from layout
+    if ( (width == 0 || height == 0) &&
+         CommonOFX::hostSupportsRoD(ofxHostName) )
+    { // no custom size, get RoD from layout
         width = rod.x2-rod.x1;
         height = rod.y2-rod.y1;
-        CommonText::CommonTextRenderResult result = renderTextRoD(_fcConfig, args, width, height);
+        CommonText::CommonTextRenderResult result = renderTextRoD(_fcConfig,
+                                                                  args,
+                                                                  width,
+                                                                  height);
         if (result.success) {
             width = result.pW;
             height = result.pH;
@@ -315,9 +329,15 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderTextRoD(FcConfig *fc,
 
 void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 {
-    desc.setLabel(kPluginName);
-    desc.setPluginGrouping(kPluginGrouping);
+    ofxHostName = getImageEffectHostDescription()->hostName;
+    gHostIsNatron = (getImageEffectHostDescription()->isNatron);
+
+    if (gHostIsNatron) { desc.setLabel(kPluginNameNatron); }
+    else { desc.setLabel(kPluginName); }
+    if (CommonOFX::isFusion(ofxHostName)) { desc.setPluginGrouping("Generators"); }
+    else { desc.setPluginGrouping(kPluginGrouping); }
     desc.setPluginDescription(kPluginDescription);
+    desc.addSupportedContext(eContextGeneral);
     desc.addSupportedContext(eContextGenerator);
     desc.addSupportedBitDepth(eBitDepthFloat);
     desc.setSupportsTiles(0);
@@ -326,8 +346,12 @@ void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 }
 
 void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
-                                             ContextEnum /* context */)
+                                             ContextEnum context)
 {
+    ofxPath = desc.getPropertySet().propGetString(kOfxPluginPropFilePath, false);
+    ofxHostName = getImageEffectHostDescription()->hostName;
+    gHostIsNatron = (getImageEffectHostDescription()->isNatron);
+
     // there has to be an input clip, even for generators
     ClipDescriptor* srcClip = desc.defineClip(kOfxImageEffectSimpleSourceClipName);
     srcClip->setOptional(true);
@@ -347,6 +371,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDisplayRange(0, 0, 4000, 4000);
         param->setDefault(kParamCanvasDefault, kParamCanvasDefault);
         param->setAnimates(false);
+        param->setIsSecret(!CommonOFX::hostSupportsRoD(ofxHostName));
         if (page) { page->addChild(*param); }
     }
     {
@@ -366,7 +391,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         // workaround for stupid Fusion!
         _fonts = fonts;
         //
-        for(int i = 0; i < _fonts.size(); ++i) { param->appendOption( fonts.at(i) ); }
+        for(unsigned int i = 0; i < _fonts.size(); ++i) { param->appendOption( fonts.at(i) ); }
         param->setAnimates(false);
         if ( fonts.empty() ) { param->appendOption("N/A"); }
         if (page) { page->addChild(*param); }
@@ -554,6 +579,17 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setHint(kParamBGColorHint);
         param->setDefault(0., 0., 0., 0.);
         param->setAnimates(true);
+        if (page) { page->addChild(*param); }
+    }
+    // range
+    if (context == eContextGeneral) {
+        Int2DParamDescriptor *param = desc.defineInt2DParam(kParamGeneratorRange);
+        param->setLabel(kParamGeneratorRangeLabel);
+        param->setHint(kParamGeneratorRangeHint);
+        param->setDefault(1, 1);
+        param->setDimensionLabels("min", "max");
+        //param->setIsSecret(!gHostIsNatron);
+        param->setAnimates(false); // can not animate, because it defines the time domain
         if (page) { page->addChild(*param); }
     }
 }
