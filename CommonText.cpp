@@ -982,10 +982,21 @@ std::vector<CommonText::CommonTextSubtitle> CommonText::parseSRT(const std::stri
 
 std::vector<std::string> CommonText::getFontFamilyList(FcConfig *fc,
                                                        const std::string &extra,
-                                                       bool extraisDir)
+                                                       bool extraisDir,
+                                                       std::string fontConf)
 {
     bool noFC = false;
-    if (!fc) { noFC = true; fc = FcInitLoadConfigAndFonts(); } // init fc
+    if (!fc) { // init fc
+        noFC = true;
+        if ( CommonText::fileExists(fontConf) ) {
+#ifdef _WIN32
+            _putenv_s( "FONTCONFIG_PATH", fontConf.c_str() );
+#else
+            setenv("FONTCONFIG_PATH", fontConf.c_str(), 1);
+#endif
+        }
+        fc = FcInitLoadConfigAndFonts();
+    }
     if (!extra.empty()) { // add extra font/dir
         const FcChar8 * custom = (const FcChar8 *)extra.c_str();
         if (!extraisDir) {

@@ -293,7 +293,8 @@ public:
     /** @brief generate font family list */
     static std::vector<std::string> getFontFamilyList(FcConfig *fc,
                                                       const std::string &extra = std::string(),
-                                                      bool extraisDir = false);
+                                                      bool extraisDir = false,
+                                                      std::string fontConf  = std::string() );
 
     /** @brief read text from file */
     static std::string readTextFile(const std::string &txt);

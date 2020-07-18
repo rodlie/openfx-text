@@ -85,6 +85,16 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
            && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup
            && _auto && _arcRadius && _arcAngle);
 
+    // setup fontconfig
+    std::string fontConf = ofxPath;
+    fontConf.append("/Contents/Resources/fonts");
+    if ( CommonText::fileExists(fontConf + "/fonts.conf") ) {
+#ifdef _WIN32
+        _putenv_s( "FONTCONFIG_PATH", fontConf.c_str() );
+#else
+        setenv("FONTCONFIG_PATH", fontConf.c_str(), 1);
+#endif
+    }
     _fcConfig = FcInitLoadConfigAndFonts();
 }
 
@@ -433,7 +443,9 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setLabel(kParamFontNameLabel);
         param->setHint(kParamFontNameHint);
 
-        std::vector<std::string> fonts = CommonText::getFontFamilyList(nullptr);
+        std::string fontConf = ofxPath;
+        fontConf.append("/Contents/Resources/fonts");
+        std::vector<std::string> fonts = CommonText::getFontFamilyList(nullptr, "", false, fontConf);
         // workaround for stupid Fusion!
         _fonts = fonts;
         //
