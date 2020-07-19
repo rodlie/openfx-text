@@ -53,7 +53,7 @@ sudo yum install gcc-g++ cmake3 pkg-config fontconfig-devel cairo-devel pango-de
 ### Build and install:
 
 ```
-git clone https://github.com/fxarena/openfx-text
+git clone https://github.com/rodlie/openfx-text
 cd openfx-text
 git submodule update -i
 mkdir build && cd build
@@ -64,7 +64,7 @@ make && sudo make install
 ## License
 
 ```
-Copyright (C) 2019, 2020 Ole-André Rodlie <ole.andre.rodlie@gmail.com>
+Copyright (C) Ole-André Rodlie <ole.andre.rodlie@gmail.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
