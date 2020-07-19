@@ -50,7 +50,10 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _arcAngle(nullptr)
 {
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
-    assert(_dstClip && _dstClip->getPixelComponents() == ePixelComponentRGBA);
+    assert(_dstClip);
+    if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
+        assert(_dstClip->getPixelComponents() == ePixelComponentRGBA);
+    }
 
     _text = fetchStringParam(kParamText);
     _fontSize = fetchIntParam(kParamFontSize);
@@ -123,11 +126,13 @@ void TextOFXPlugin::render(const RenderArguments &args)
     checkBadRenderScaleOrField(dstImg, args);
 
     // get bitdepth and channels
-    BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
-    PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
-    if ( (dstBitDepth != eBitDepthFloat) || (dstComponents != ePixelComponentRGBA) ) {
-        throwSuiteStatusException(kOfxStatErrFormat);
-        return;
+    if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
+        BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
+        PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
+        if ( (dstBitDepth != eBitDepthFloat) || (dstComponents != ePixelComponentRGBA) ) {
+            throwSuiteStatusException(kOfxStatErrFormat);
+            return;
+        }
     }
 
     // are we in the image bounds
@@ -170,6 +175,8 @@ void TextOFXPlugin::render(const RenderArguments &args)
             offset += 4;
         }
     }
+
+    // clear
     delete [] result.buffer;
     result.buffer = nullptr;
     pixelData = nullptr;
@@ -215,13 +222,13 @@ bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &arg
     int width, height;
     _canvas->getValue(width, height);
     _auto->getValue(autoSize);
-    if ( !CommonOFX::hostSupportsRoD(ofxHostName) ) { // host does not support custom size
+    /*if ( !CommonOFX::hostSupportsRoD(ofxHostName) ) { // host does not support custom size
         width = 0;
         height = 0;
-    }
+    }*/
 
-    if ( (width == 0 || height == 0) &&
-         CommonOFX::hostSupportsRoD(ofxHostName)  && autoSize)
+    if ( (width == 0 || height == 0) /*&&
+         CommonOFX::hostSupportsRoD(ofxHostName)*/  && autoSize)
     { // no custom size, get RoD from layout
         width = rod.x2-rod.x1;
         height = rod.y2-rod.y1;
@@ -410,7 +417,7 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
         param->setDisplayRange(0, 0, 4000, 4000);
         param->setDefault(kParamCanvasDefault, kParamCanvasDefault);
         param->setAnimates(false);
-        param->setIsSecret(!CommonOFX::hostSupportsRoD(ofxHostName));
+        //param->setIsSecret(!CommonOFX::hostSupportsRoD(ofxHostName));
         if (page) { page->addChild(*param); }
     }
     {

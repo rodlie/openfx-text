@@ -8,17 +8,16 @@ Currently under development, not end-user ready yet.
 
 ## Compatibility
 
-* [Natron](https://natrongithub.github.io/) *[OK]*
-* [The Foundry](https://www.foundry.com/) [Nuke](https://www.foundry.com/products/nuke) *[WIP]*
-  * No output
-* [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) *[OK]*
+* [Natron](https://natrongithub.github.io/) *2+*
+* [The Foundry](https://www.foundry.com/) [Nuke](https://www.foundry.com/products/nuke) *7+*
+* [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) *15+*
   * Only works in the "Fusion" tab
-* [Blackmagic Design](https://blackmagicdesign.com) [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion) *[WIP]*
+* [Blackmagic Design](https://blackmagicdesign.com) [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion) *9+*
   * Issues with render scale?
-* [MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *[WIP]*
+* [MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *WIP*
   * No output
-* [FXhome](https://fxhome.com) [HitFilm Pro](https://fxhome.com/hitfilm-pro) *[???]*
-* [Sony](http://www.sonycreativesoftware.com) [Catalyst Edit](http://www.sonycreativesoftware.com/catalystedit) *[???]*
+* [FXhome](https://fxhome.com) [HitFilm Pro](https://fxhome.com/hitfilm-pro) *???*
+* [Sony](http://www.sonycreativesoftware.com) [Catalyst Edit](http://www.sonycreativesoftware.com/catalystedit) *???*
 
 
 ## Windows
