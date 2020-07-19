@@ -17,10 +17,14 @@
 cmake_minimum_required(VERSION 3.1)
 project(Text VERSION 1.0.0 LANGUAGES CXX)
 
-add_definitions(-DkPluginVersionMajor=${PROJECT_VERSION_MAJOR} -DkPluginVersionMinor=${PROJECT_VERSION_MINOR})
-
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
 option(ENABLE_RICH_TEXT "Enable Rich Text Editor" OFF)
+option(LOG_EVENTS "Log events" OFF)
+
+add_definitions(-DkPluginVersionMajor=${PROJECT_VERSION_MAJOR} -DkPluginVersionMinor=${PROJECT_VERSION_MINOR})
+if(${LOG_EVENTS})
+    add_definitions(-DLOG_EVENTS)
+endif()
 
 # Require OpenGL
 if(POLICY CMP0072)

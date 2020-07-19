@@ -13,7 +13,8 @@ Currently under development, not end-user ready yet.
 * [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) *15+*
   * Only works in the "Fusion" tab
 * [Blackmagic Design](https://blackmagicdesign.com) [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion) *9+*
-  * Issues with render scale?
+  * version 9 has issues with render scale
+  * version 16 has issues with render scale, disable auto proxy
 * [MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *WIP*
   * No output
 * [FXhome](https://fxhome.com) [HitFilm Pro](https://fxhome.com/hitfilm-pro) *???*

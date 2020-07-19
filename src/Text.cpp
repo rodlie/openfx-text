@@ -49,6 +49,10 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _arcRadius(nullptr)
     , _arcAngle(nullptr)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("init");
+#endif
+
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip);
     if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
@@ -80,7 +84,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     _arcAngle = fetchDoubleParam(kParamArcAngle);
 
     if (getContext() == eContextGeneral) {
-            _range   = fetchInt2DParam(kParamGeneratorRange);
+        _range   = fetchInt2DParam(kParamGeneratorRange);
     }
 
     assert(_text && _fontSize && _fontName && _textColor && _bgColor && _font && _wrap
@@ -88,6 +92,9 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
            && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup
            && _auto && _arcRadius && _arcAngle);
 
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("init fontconfig");
+#endif
     // setup fontconfig
     std::string fontConf = ofxPath;
     fontConf.append("/Contents/Resources/fonts");
@@ -103,11 +110,23 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 
 void TextOFXPlugin::render(const RenderArguments &args)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("render");
+#endif
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("renderscale check");
+#endif
+
     // renderscale
     if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
         throwSuiteStatusException(kOfxStatFailed);
         return;
     }
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("get dest clip");
+#endif
 
     // dstclip
     if (!_dstClip) {
@@ -122,8 +141,16 @@ void TextOFXPlugin::render(const RenderArguments &args)
         return;
     }
 
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("check bad renderscale or field");
+#endif
+
     // renderscale
     checkBadRenderScaleOrField(dstImg, args);
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("check bitdepth and channels");
+#endif
 
     // get bitdepth and channels
     if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
@@ -134,6 +161,10 @@ void TextOFXPlugin::render(const RenderArguments &args)
             return;
         }
     }
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("check bounds");
+#endif
 
     // are we in the image bounds
     OfxRectI dstBounds = dstImg->getBounds();
@@ -155,6 +186,10 @@ void TextOFXPlugin::render(const RenderArguments &args)
     int width = dstRod.x2-dstRod.x1;
     int height = dstRod.y2-dstRod.y1;
 
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("render text");
+#endif
+
     // render image
     CommonText::CommonTextRenderResult result = renderText(_fcConfig, args, width, height);
     if ( !result.success || (result.sW != width || result.sH != height) ) {
@@ -162,6 +197,10 @@ void TextOFXPlugin::render(const RenderArguments &args)
         throwSuiteStatusException(kOfxStatErrFormat);
         return;
     }
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("write output");
+#endif
 
     // write output
     float* pixelData = (float*)dstImg->getPixelData();
@@ -180,11 +219,19 @@ void TextOFXPlugin::render(const RenderArguments &args)
     delete [] result.buffer;
     result.buffer = nullptr;
     pixelData = nullptr;
+
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("render done");
+#endif
 }
 
 void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
                                  const std::string &paramName)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("changed param");
+#endif
+
     clearPersistentMessage();
 
     if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
@@ -204,7 +251,7 @@ void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
         // workaround for fusion
         int selected = -1;
         _fontName->getValue(selected);
-        if ( selected <= _fonts.size() ) {
+        if ( selected <= static_cast<int>( _fonts.size() ) ) {
             _font->setValue( _fonts.at(selected) );
         }
     }
@@ -213,6 +260,10 @@ void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
 bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &args,
                                           OfxRectD &rod)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("get region of definition");
+#endif
+
     if (!kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.)) {
         OFX::throwSuiteStatusException(kOfxStatFailed);
         return false;
@@ -253,6 +304,10 @@ bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &arg
 
 bool TextOFXPlugin::getTimeDomain(OfxRangeD &range)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("get time domain");
+#endif
+
     if (getContext() == eContextGeneral) {
         assert(_range);
         // how many frames on the input clip
@@ -375,6 +430,9 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderTextRoD(FcConfig *fc,
 
 void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("describe");
+#endif
     ofxHostName = getImageEffectHostDescription()->hostName;
     gHostIsNatron = (getImageEffectHostDescription()->isNatron);
 
@@ -394,6 +452,9 @@ void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
                                              ContextEnum context)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("describe in context");
+#endif
     ofxPath = desc.getPropertySet().propGetString(kOfxPluginPropFilePath, false);
     ofxHostName = getImageEffectHostDescription()->hostName;
     gHostIsNatron = (getImageEffectHostDescription()->isNatron);
@@ -673,5 +734,9 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
 ImageEffect *TextOFXPluginFactory::createInstance(OfxImageEffectHandle handle,
                                                   ContextEnum /* context */)
 {
+#ifdef LOG_EVENTS
+    CommonOFX::logToFile("create instance");
+#endif
+
     return new TextOFXPlugin(handle);
 }
