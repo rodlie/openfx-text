@@ -3,7 +3,6 @@
 
 #include <string>
 #include <fstream>
-//#include <iostream>
 #include <stdlib.h>
 
 #define OFX_HOST_NATRON "fr.inria.Natron"
@@ -76,6 +75,40 @@ public:
         if ( output.fail() ) { return; }
         output << content << "\n";
         output.close();
+    }
+    static void writeOutput(int width,
+                            int height,
+                            unsigned char *buffer,
+                            float *pixelData)
+    {
+        if (width == 0 || height == 0 || !buffer) { return; }
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                pixelData[offset + 0] = buffer[offset + 0] * (1.f / 255);
+                pixelData[offset + 1] = buffer[offset + 1] * (1.f / 255);
+                pixelData[offset + 2] = buffer[offset + 2] * (1.f / 255);
+                pixelData[offset + 3] = buffer[offset + 3] * (1.f / 255);
+                offset += 4;
+            }
+        }
+    }
+    static void writeOutput(int width,
+                            int height,
+                            unsigned char *buffer,
+                            unsigned char *pixelData)
+    {
+        if (width == 0 || height == 0 || !buffer) { return; }
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                pixelData[offset + 0] = buffer[offset + 0];
+                pixelData[offset + 1] = buffer[offset + 1];
+                pixelData[offset + 2] = buffer[offset + 2];
+                pixelData[offset + 3] = buffer[offset + 3];
+                offset += 4;
+            }
+        }
     }
 };
 

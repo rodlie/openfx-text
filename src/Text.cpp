@@ -17,7 +17,6 @@
 */
 
 #include "Text.h"
-
 #include <iostream>
 
 TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
@@ -49,13 +48,9 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
     , _arcRadius(nullptr)
     , _arcAngle(nullptr)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("init");
-#endif
-
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip);
-    if ( !CommonOFX::isBadHost(ofxHostName) ) { // do not check on some hosts
+    if ( !CommonOFX::isNuke(ofxHostName) ) { // Nuke is always RGBA (check will fail)
         assert(_dstClip->getPixelComponents() == ePixelComponentRGBA);
     }
 
@@ -92,11 +87,6 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
            && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup
            && _auto && _arcRadius && _arcAngle);
 
-
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("init fontconfig");
-#endif
-
     // setup fontconfig
     std::string fontConf = ofxPath;
     fontConf.append("/Contents/Resources/fonts");
@@ -112,20 +102,11 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 
 void TextOFXPlugin::render(const RenderArguments &args)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("render start");
-    CommonOFX::logToFile("renderscale check");
-#endif
-
     // renderscale
     if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
         throwSuiteStatusException(kOfxStatFailed);
         return;
     }
-
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("get dest clip");
-#endif
 
     // dstclip
     if (!_dstClip) {
@@ -140,30 +121,19 @@ void TextOFXPlugin::render(const RenderArguments &args)
         return;
     }
 
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("check bad renderscale or field");
-#endif
-
-    // renderscale
+    // check renderscale or field
     checkBadRenderScaleOrField(dstImg, args);
 
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("check bitdepth and channels");
-#endif
-
-    // get bitdepth and channels
-    if ( !CommonOFX::isBadHost(ofxHostName) ) { // do not check on some hosts
-        BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
-        PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
-        if ( (dstBitDepth != eBitDepthFloat) || (dstComponents != ePixelComponentRGBA) ) {
+    // check bitdepth and channels
+    BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
+    PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
+    if ( !CommonOFX::isNuke(ofxHostName) ) { // Nuke is always 32-BIT FLOAT and RGBA (check will fail)
+        if ( (dstBitDepth != eBitDepthFloat && dstBitDepth != eBitDepthUByte) ||
+             (dstComponents != ePixelComponentRGBA) ) {
             throwSuiteStatusException(kOfxStatErrFormat);
             return;
         }
     }
-
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("check bounds");
-#endif
 
     // are we in the image bounds
     OfxRectI dstBounds = dstImg->getBounds();
@@ -185,10 +155,6 @@ void TextOFXPlugin::render(const RenderArguments &args)
     int width = dstRod.x2-dstRod.x1;
     int height = dstRod.y2-dstRod.y1;
 
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("render text");
-#endif
-
     // render image
     CommonText::CommonTextRenderResult result = renderText(_fcConfig, args, width, height);
     if ( !result.success || (result.sW != width || result.sH != height) ) {
@@ -197,40 +163,26 @@ void TextOFXPlugin::render(const RenderArguments &args)
         return;
     }
 
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("write output");
-#endif
-
     // write output
-    float* pixelData = (float*)dstImg->getPixelData();
-    int offset = 0;
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            pixelData[offset + 0] = result.buffer[offset + 0] * (1.f / 255);
-            pixelData[offset + 1] = result.buffer[offset + 1] * (1.f / 255);
-            pixelData[offset + 2] = result.buffer[offset + 2] * (1.f / 255);
-            pixelData[offset + 3] = result.buffer[offset + 3] * (1.f / 255);
-            offset += 4;
-        }
+    if (dstBitDepth == eBitDepthUByte) { // 8-bit int
+        unsigned char* pixelData = (unsigned char*)dstImg->getPixelData();
+        CommonOFX::writeOutput(width, height, result.buffer, pixelData);
+        pixelData = nullptr;
+    } else if (dstBitDepth == eBitDepthFloat || CommonOFX::isNuke(ofxHostName) ) { // 32-bit float
+        // Note that we do a check for Nuke, since dstBithDepth from Nuke is wrong
+        float* pixelData = (float*)dstImg->getPixelData();
+        CommonOFX::writeOutput(width, height, result.buffer, pixelData);
+        pixelData = nullptr;
     }
 
     // clear
     delete [] result.buffer;
     result.buffer = nullptr;
-    pixelData = nullptr;
-
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("render done");
-#endif
 }
 
 void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
                                  const std::string &paramName)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("changed param");
-#endif
-
     clearPersistentMessage();
 
     if ( !kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.) ) {
@@ -259,10 +211,6 @@ void TextOFXPlugin::changedParam(const InstanceChangedArgs &args,
 bool TextOFXPlugin::getRegionOfDefinition(const RegionOfDefinitionArguments &args,
                                           OfxRectD &rod)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("get region of definition");
-#endif
-
     if (!kSupportsRenderScale && (args.renderScale.x != 1. || args.renderScale.y != 1.)) {
         OFX::throwSuiteStatusException(kOfxStatFailed);
         return false;
@@ -429,19 +377,17 @@ CommonText::CommonTextRenderResult TextOFXPlugin::renderTextRoD(FcConfig *fc,
 
 void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("describe");
-#endif
     ofxHostName = getImageEffectHostDescription()->hostName;
     gHostIsNatron = (getImageEffectHostDescription()->isNatron);
 
     if (gHostIsNatron) { desc.setLabel(kPluginNameNatron); }
     else { desc.setLabel(kPluginName); }
-    if (CommonOFX::isFusion(ofxHostName)) { desc.setPluginGrouping("Generator"); } // Creator
+    if ( CommonOFX::isBMD(ofxHostName) ) { desc.setPluginGrouping("Generator"); } // Creator on v9
     else { desc.setPluginGrouping(kPluginGrouping); }
     desc.setPluginDescription(kPluginDescription);
     desc.addSupportedContext(eContextGeneral);
     desc.addSupportedContext(eContextGenerator);
+    desc.addSupportedBitDepth(eBitDepthUByte);
     desc.addSupportedBitDepth(eBitDepthFloat);
     desc.setSupportsTiles(0);
     desc.setSupportsMultiResolution(0);
@@ -451,9 +397,6 @@ void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc)
 void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
                                              ContextEnum context)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("describe in context");
-#endif
     ofxPath = desc.getPropertySet().propGetString(kOfxPluginPropFilePath, false);
     ofxHostName = getImageEffectHostDescription()->hostName;
     gHostIsNatron = (getImageEffectHostDescription()->isNatron);
@@ -733,9 +676,5 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
 ImageEffect *TextOFXPluginFactory::createInstance(OfxImageEffectHandle handle,
                                                   ContextEnum /* context */)
 {
-#ifdef LOG_EVENTS
-    CommonOFX::logToFile("create instance");
-#endif
-
     return new TextOFXPlugin(handle);
 }

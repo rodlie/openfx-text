@@ -1,6 +1,6 @@
 # openfx-text
 
-Advanced internationalized [OpenFX](http://openeffects.org/) text generator.
+Advanced internationalized cross-platform [OpenFX](http://openeffects.org/) text generator for Natron, Nuke, Resolve, Fusion and Vegas.
 
 This project is a continuation of the Text node in Natron (from [openfx-arena](https://github.com/NatronGitHub/openfx-arena)), but with focus on cross-application support, better maintainability and more experimental features.
 
@@ -15,11 +15,7 @@ Currently under development, not end-user ready yet.
 * [Blackmagic Design](https://blackmagicdesign.com) [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion) *9+*
   * version 9 has issues with render scale
   * version 16 has issues with render scale, disable auto proxy
-* [MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *WIP*
-  * No output
-* [FXhome](https://fxhome.com) [HitFilm Pro](https://fxhome.com/hitfilm-pro) *???*
-* [Sony](http://www.sonycreativesoftware.com) [Catalyst Edit](http://www.sonycreativesoftware.com/catalystedit) *???*
-
+* [Sony](http://www.sonycreativesoftware.com)/[MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *12+*
 
 ## Windows
 
