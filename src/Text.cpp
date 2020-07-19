@@ -55,7 +55,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 
     _dstClip = fetchClip(kOfxImageEffectOutputClipName);
     assert(_dstClip);
-    if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
+    if ( !CommonOFX::isBadHost(ofxHostName) ) { // do not check on some hosts
         assert(_dstClip->getPixelComponents() == ePixelComponentRGBA);
     }
 
@@ -92,9 +92,11 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
            && _strokeWidth && _hintStyle && _hintMetrics  && _letterSpace && _canvas && _markup
            && _auto && _arcRadius && _arcAngle);
 
+
 #ifdef LOG_EVENTS
     CommonOFX::logToFile("init fontconfig");
 #endif
+
     // setup fontconfig
     std::string fontConf = ofxPath;
     fontConf.append("/Contents/Resources/fonts");
@@ -111,10 +113,7 @@ TextOFXPlugin::TextOFXPlugin(OfxImageEffectHandle handle)
 void TextOFXPlugin::render(const RenderArguments &args)
 {
 #ifdef LOG_EVENTS
-    CommonOFX::logToFile("render");
-#endif
-
-#ifdef LOG_EVENTS
+    CommonOFX::logToFile("render start");
     CommonOFX::logToFile("renderscale check");
 #endif
 
@@ -153,7 +152,7 @@ void TextOFXPlugin::render(const RenderArguments &args)
 #endif
 
     // get bitdepth and channels
-    if (!CommonOFX::isNuke(ofxHostName)) { // do not check Nuke
+    if ( !CommonOFX::isBadHost(ofxHostName) ) { // do not check on some hosts
         BitDepthEnum dstBitDepth = dstImg->getPixelDepth();
         PixelComponentEnum dstComponents  = dstImg->getPixelComponents();
         if ( (dstBitDepth != eBitDepthFloat) || (dstComponents != ePixelComponentRGBA) ) {

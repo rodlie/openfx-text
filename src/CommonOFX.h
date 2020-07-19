@@ -43,6 +43,10 @@ public:
         if (host == OFX_HOST_VEGAS) { return true; }
         return false;
     }
+    static bool isBadHost(const std::string &host)
+    {
+        return ( isNuke(host) || isVegas(host) );
+    }
     static const std::string getEnv(const std::string &key)
     {
         char const* val = getenv( key.c_str() );
