@@ -1,14 +1,29 @@
 # openfx-text
 
-Advanced internationalized [OpenFX](http://openeffects.org/) text generator for [Natron](https://natrongithub.github.io/), [The Foundry](https://www.foundry.com/) [Nuke](https://www.foundry.com/products/nuke), [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) / [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion).
+Advanced internationalized [OpenFX](http://openeffects.org/) text generator.
 
-This project is a continuation of the Text node in Natron (from [openfx-arena](https://github.com/NatronGitHub/openfx-arena)), but written from scratch with focus on cross-application support and more experimental features.
+This project is a continuation of the Text node in Natron (from [openfx-arena](https://github.com/NatronGitHub/openfx-arena)), but with focus on cross-application support, better maintainability and more experimental features.
 
 Currently under development, not end-user ready yet.
 
+## Compatibility
+
+* [Natron](https://natrongithub.github.io/) *[OK]*
+* [The Foundry](https://www.foundry.com/) [Nuke](https://www.foundry.com/products/nuke) *[WIP]*
+  * No output
+* [Blackmagic Design](https://blackmagicdesign.com) [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) *[OK]*
+  * Only works in the "Fusion" tab
+* [Blackmagic Design](https://blackmagicdesign.com) [Fusion Studio](https://www.blackmagicdesign.com/no/products/fusion) *[WIP]*
+  * Issues with render scale?
+* [MAGIX](https://www.magix.com)‎ [Vegas Pro](https://www.vegascreativesoftware.com) *[WIP]*
+  * No output
+* [FXhome](https://fxhome.com) [HitFilm Pro](https://fxhome.com/hitfilm-pro) *[???]*
+* [Sony](http://www.sonycreativesoftware.com) [Catalyst Edit](http://www.sonycreativesoftware.com/catalystedit) *[???]*
+
+
 ## Windows
 
-TBD
+TBA
 
 ## macOS
 
