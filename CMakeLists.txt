@@ -20,7 +20,7 @@ project(Text VERSION 1.0.0 LANGUAGES CXX)
 add_definitions(-DkPluginVersionMajor=${PROJECT_VERSION_MAJOR} -DkPluginVersionMinor=${PROJECT_VERSION_MINOR})
 
 option(BUNDLE_FONTS_CONF "Bundle fonts.conf" OFF)
-option(ENABLE_RICH_TEXT "Enable Rich Text Editor" ON)
+option(ENABLE_RICH_TEXT "Enable Rich Text Editor" OFF)
 
 # Require OpenGL
 if(POLICY CMP0072)
@@ -61,6 +61,7 @@ if(NOT EXISTS ${OPENFX_PATH}/include)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${OPENFX_PATH}/include)
 include_directories(${OFX_SUPPORT_HEADER_DIR})
 include_directories(${OPENFX_PATH}/Support/Plugins/include)
@@ -84,14 +85,14 @@ FILE(GLOB SUPPORT_SOURCES
 )
 
 file(GLOB SOURCES
-    "Text.cpp"
-    "Text.h"
-    "TextFX.h"
-    "CommonText.cpp"
-    "CommonText.h"
-    "CommonOFX.h"
+    "src/Text.cpp"
+    "src/Text.h"
+    "src/TextFX.h"
+    "src/CommonText.cpp"
+    "src/CommonText.h"
+    "src/CommonOFX.h"
 )
-file(GLOB RESOURCES "net.sf.openfx.Text.png")
+file(GLOB RESOURCES "share/net.sf.openfx.Text.png")
 
 if (APPLE)
     set(FC_FONTS_DIR "<dir>/System/Library/Fonts</dir><dir>/Library/Fonts</dir><dir>~/Library/Fonts</dir>")
@@ -104,13 +105,13 @@ else()
     set(FC_CACHE_DIR "<cachedir prefix=\"xdg\">fontconfig</cachedir><cachedir>~/.fontconfig</cachedir>")
 endif()
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/fonts.conf.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/share/fonts.conf.in
     ${CMAKE_CURRENT_BINARY_DIR}/fonts.conf
     @ONLY
 )
 
 if(${ENABLE_RICH_TEXT})
-    add_executable(RichText RichTextEditor.cpp RichTextWidget.cpp RichTextWidget.h)
+    add_executable(RichText src/RichTextEditor.cpp src/RichTextWidget.cpp src/RichTextWidget.h)
 endif()
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
@@ -208,7 +209,7 @@ else()
     install(FILES ${RESOURCES} LICENSE README.md
         DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents/Resources
     )
-    install(FILES Info.plist
+    install(FILES share/Info.plist
         DESTINATION ${PROJECT_NAME}.ofx.bundle/Contents
     )
     if(${BUNDLE_FONTS_CONF})
